@@ -1,0 +1,16 @@
+package com.nawasenahost.availabilityservice.service;
+
+import com.nawasenahost.availabilityservice.dto.AvailabilityRequest;
+import com.nawasenahost.availabilityservice.entity.Availability;
+
+import java.util.List;
+
+public interface AvailabilityService {
+
+    List<Availability> findAll();
+    Availability findById(int id);
+    Availability save(AvailabilityRequest availabilityRequest);
+    void deleteById(int id);
+    Availability update(int id, AvailabilityRequest availabilityRequest);
+
+}
