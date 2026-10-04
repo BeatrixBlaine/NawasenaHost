@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 @FeignClient(name = "hotel-service")
 public interface HotelClient {
 
-    @GetMapping("api/hotels/{hotelId}")
+    @GetMapping("/api/hotels/{hotelId}")
     ResponseEntity<Void> getHotel(@PathVariable int hotelId);
 
 }
