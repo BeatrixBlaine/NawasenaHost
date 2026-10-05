@@ -46,6 +46,7 @@ public class AvailabilityRestController {
         return "Availability with id: " + availabilityId + " deleted";
     }
 
+    // endpoints to be called by booking-service
     @GetMapping("/availabilities/check")
     public boolean checkAvailability(
             @RequestParam int roomId,
