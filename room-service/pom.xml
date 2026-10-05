@@ -8,7 +8,7 @@
         <version>4.1.1</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
-    <groupId>com.ebohost</groupId>
+    <groupId>com.nawasenahost</groupId>
     <artifactId>room-service</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>room-service</name>

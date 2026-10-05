@@ -1,13 +1,14 @@
 package com.nawasenahost.availabilityservice.service;
 
+import com.nawasenahost.availabilityservice.client.RoomClient;
 import com.nawasenahost.availabilityservice.dto.AvailabilityRequest;
 import com.nawasenahost.availabilityservice.entity.Availability;
 import com.nawasenahost.availabilityservice.exception.AvailabilityNotFoundException;
 import com.nawasenahost.availabilityservice.exception.RoomNotFoundException;
 import com.nawasenahost.availabilityservice.repository.AvailabilityRepository;
+import feign.FeignException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClient;
 
 import java.util.List;
@@ -18,21 +19,21 @@ public class AvailabilityServiceImpl implements AvailabilityService{
 
     private final AvailabilityRepository availabilityRepository;
     private final RestClient restClient;
+    private final RoomClient roomClient;
 
     @Autowired
     public AvailabilityServiceImpl(AvailabilityRepository availabilityRepository,
-                                   RestClient restClient) {
+                                   RestClient restClient,
+                                   RoomClient roomClient) {
         this.availabilityRepository = availabilityRepository;
         this.restClient = restClient;
+        this.roomClient = roomClient;
     }
 
     public void validateRoom(int roomId) {
         try {
-            restClient.get()
-                    .uri("http://localhost:8082/api/rooms/{roomId}", roomId)
-                    .retrieve()
-                    .toBodilessEntity();
-        } catch (HttpClientErrorException.NotFound e) {
+            roomClient.getRoom(roomId);
+        } catch (FeignException.NotFound e) {
             throw new RoomNotFoundException(
                     "Room with ID " + roomId + " does not exist"
             );
