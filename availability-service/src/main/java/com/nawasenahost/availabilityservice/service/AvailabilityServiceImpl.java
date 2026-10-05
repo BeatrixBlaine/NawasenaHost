@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -58,6 +59,31 @@ public class AvailabilityServiceImpl implements AvailabilityService{
                 );
 
         return blockingRecords.isEmpty();
+    }
+
+    @Override
+    public List<Availability> createBooking(int roomId, LocalDate checkInDate, LocalDate checkOutDate) {
+
+        List<Availability> bookedRoom = new ArrayList<>();
+
+        // loop through checkInDate to checkOutDate
+        for (LocalDate date = checkInDate;
+             !date.isAfter(checkOutDate);
+             date = date.plusDays(1)) {
+
+            // adding new Data
+            Availability tempAvailaibility = new Availability();
+            tempAvailaibility.setRoomId(roomId);
+            tempAvailaibility.setDate(date);
+            tempAvailaibility.setStatus(AvailabilityStatus.BOOKED);
+
+            bookedRoom.add(tempAvailaibility);
+        }
+
+        // saving all data
+        availabilityRepository.saveAll(bookedRoom);
+
+        return bookedRoom;
     }
 
     @Override

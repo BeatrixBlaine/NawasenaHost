@@ -14,5 +14,6 @@ public interface AvailabilityService {
     void deleteById(int id);
     Availability update(int id, AvailabilityRequest availabilityRequest);
     boolean isAvailable(int roomId, LocalDate checkInDate, LocalDate checkOutDate);
+    List<Availability> createBooking(int roomId, LocalDate checkInDate, LocalDate checkOutDate);
 
 }

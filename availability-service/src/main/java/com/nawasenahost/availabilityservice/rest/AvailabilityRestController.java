@@ -58,4 +58,13 @@ public class AvailabilityRestController {
                 checkOutDate
         );
     }
+
+    @PostMapping("/availabilities/book")
+    public List<Availability> createBooking(
+            @RequestParam int roomId,
+            @RequestParam LocalDate checkInDate,
+            @RequestParam LocalDate checkOutDate) {
+
+        return availabilityService.createBooking(roomId, checkInDate, checkOutDate);
+    }
 }
