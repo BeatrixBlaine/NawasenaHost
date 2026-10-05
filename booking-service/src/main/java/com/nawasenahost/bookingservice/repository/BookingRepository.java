@@ -1,4 +1,7 @@
 package com.nawasenahost.bookingservice.repository;
 
-public interface BookingRepository {
+import com.nawasenahost.bookingservice.entity.Booking;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface BookingRepository extends JpaRepository<Booking, Integer> {
 }
