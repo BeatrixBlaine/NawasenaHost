@@ -3,6 +3,7 @@ package com.nawasenahost.availabilityservice.service;
 import com.nawasenahost.availabilityservice.client.RoomClient;
 import com.nawasenahost.availabilityservice.dto.AvailabilityRequest;
 import com.nawasenahost.availabilityservice.entity.Availability;
+import com.nawasenahost.availabilityservice.entity.AvailabilityStatus;
 import com.nawasenahost.availabilityservice.exception.AvailabilityNotFoundException;
 import com.nawasenahost.availabilityservice.exception.RoomNotFoundException;
 import com.nawasenahost.availabilityservice.repository.AvailabilityRepository;
@@ -11,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -38,6 +40,24 @@ public class AvailabilityServiceImpl implements AvailabilityService{
                     "Room with ID " + roomId + " does not exist"
             );
         }
+    }
+
+    @Override
+    public boolean isAvailable(int roomId, LocalDate checkInDate, LocalDate checkOutDate) {
+
+        List<Availability> blockingRecords =
+                availabilityRepository.findByRoomIdAndStatusInAndDateGreaterThanEqualAndDateLessThan(
+                        roomId,
+                        List.of(
+                                AvailabilityStatus.BOOKED,
+                                AvailabilityStatus.MAINTENANCE,
+                                AvailabilityStatus.BLOCKED
+                        ),
+                        checkInDate,
+                        checkOutDate
+                );
+
+        return blockingRecords.isEmpty();
     }
 
     @Override

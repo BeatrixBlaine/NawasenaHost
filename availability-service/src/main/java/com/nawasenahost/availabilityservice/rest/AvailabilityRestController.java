@@ -6,6 +6,7 @@ import com.nawasenahost.availabilityservice.service.AvailabilityService;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -43,5 +44,18 @@ public class AvailabilityRestController {
     public String deleteAvailability(@PathVariable int availabilityId) {
         availabilityService.deleteById(availabilityId);
         return "Availability with id: " + availabilityId + " deleted";
+    }
+
+    @GetMapping("/availabilities/check")
+    public boolean checkAvailability(
+            @RequestParam int roomId,
+            @RequestParam LocalDate checkInDate,
+            @RequestParam LocalDate checkOutDate) {
+
+        return availabilityService.isAvailable(
+                roomId,
+                checkInDate,
+                checkOutDate
+        );
     }
 }
