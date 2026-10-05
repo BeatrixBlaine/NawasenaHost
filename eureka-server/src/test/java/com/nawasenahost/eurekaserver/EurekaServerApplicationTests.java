@@ -1,4 +1,4 @@
-package com.ebohost.eurekaserver;
+package com.nawasenahost.eurekaserver;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
