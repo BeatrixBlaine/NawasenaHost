@@ -68,7 +68,7 @@ public class AvailabilityServiceImpl implements AvailabilityService{
 
         // loop through checkInDate to checkOutDate
         for (LocalDate date = checkInDate;
-             !date.isAfter(checkOutDate);
+             date.isBefore(checkOutDate);
              date = date.plusDays(1)) {
 
             // adding new Data
