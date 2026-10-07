@@ -3,13 +3,11 @@ package com.nawasenahost.bookingservice.service;
 import com.nawasenahost.bookingservice.client.AvailabilityClient;
 import com.nawasenahost.bookingservice.client.HotelClient;
 import com.nawasenahost.bookingservice.client.RoomClient;
+import com.nawasenahost.bookingservice.client.UserClient;
 import com.nawasenahost.bookingservice.dto.BookingRequest;
 import com.nawasenahost.bookingservice.entity.Booking;
 import com.nawasenahost.bookingservice.entity.BookingStatus;
-import com.nawasenahost.bookingservice.exception.BookingNotFoundException;
-import com.nawasenahost.bookingservice.exception.HotelNotFoundException;
-import com.nawasenahost.bookingservice.exception.RoomNotAvailableException;
-import com.nawasenahost.bookingservice.exception.RoomNotFoundException;
+import com.nawasenahost.bookingservice.exception.*;
 import com.nawasenahost.bookingservice.repository.BookingRepository;
 import feign.FeignException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,16 +24,28 @@ public class BookingServiceImpl implements BookingService{
     private final HotelClient hotelClient;
     private final RoomClient roomClient;
     private final AvailabilityClient availabilityClient;
+    private final UserClient userClient;
 
     @Autowired
     public BookingServiceImpl(BookingRepository bookingRepository,
                               HotelClient hotelClient,
                               RoomClient roomClient,
-                              AvailabilityClient availabilityClient) {
+                              AvailabilityClient availabilityClient,
+                              UserClient userClient) {
         this.bookingRepository = bookingRepository;
         this.hotelClient = hotelClient;
         this.roomClient = roomClient;
         this.availabilityClient = availabilityClient;
+        this.userClient = userClient;
+    }
+
+    // checks if user exist
+    public void validateUser(int userId) {
+        try {
+            userClient.getUser(userId);
+        } catch (FeignException.NotFound e) {
+            throw new UserNotFoundException("User with ID: " + userId + " does not exist");
+        }
     }
 
     // checks if check out date is after check in date
@@ -54,7 +64,7 @@ public class BookingServiceImpl implements BookingService{
         try {
             hotelClient.getHotel(hotelId);
         } catch(FeignException.NotFound e) {
-            throw new HotelNotFoundException("Hotel with ID " + hotelId + " does not exist");
+            throw new HotelNotFoundException("Hotel with ID: " + hotelId + " does not exist");
         }
     }
 
@@ -63,7 +73,7 @@ public class BookingServiceImpl implements BookingService{
         try {
             roomClient.getRoom(roomId);
         } catch(FeignException.NotFound e) {
-            throw new RoomNotFoundException("Room with ID " + roomId + " does not exist");
+            throw new RoomNotFoundException("Room with ID: " + roomId + " does not exist");
         }
     }
 
@@ -99,6 +109,7 @@ public class BookingServiceImpl implements BookingService{
     public Booking save(BookingRequest bookingRequest) {
 
         validateDates(bookingRequest);
+        validateUser(bookingRequest.getUserId());
         validateHotel(bookingRequest.getHotelId());
         validateRoom(bookingRequest.getRoomId());
         boolean isAvailable = validateAvailability(
@@ -144,6 +155,7 @@ public class BookingServiceImpl implements BookingService{
         validateDates(bookingRequest);
         validateHotel(bookingRequest.getHotelId());
         validateRoom(bookingRequest.getRoomId());
+        validateUser(bookingRequest.getUserId());
 
         Booking tempBooking = findById(id);
         tempBooking.setUserId(bookingRequest.getUserId());
