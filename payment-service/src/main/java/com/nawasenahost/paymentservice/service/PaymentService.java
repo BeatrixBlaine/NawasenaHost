@@ -2,6 +2,7 @@ package com.nawasenahost.paymentservice.service;
 
 import com.nawasenahost.paymentservice.dto.PaymentRequest;
 import com.nawasenahost.paymentservice.entity.Payment;
+import com.nawasenahost.paymentservice.entity.PaymentMethod;
 import com.nawasenahost.paymentservice.entity.PaymentStatus;
 
 import java.util.List;
@@ -13,7 +14,7 @@ public interface PaymentService {
     void deleteById(int id);
     Payment update(int paymentId, PaymentRequest paymentRequest);
     Payment save(PaymentRequest paymentRequest);
-    Payment confirmPaymentCash(int paymentId);
+    Payment confirmPayment(int paymentId, PaymentMethod paymentMethod);
     PaymentRequest createPayment(int bookingId);
 
 }

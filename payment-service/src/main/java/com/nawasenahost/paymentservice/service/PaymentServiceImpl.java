@@ -111,12 +111,12 @@ public class PaymentServiceImpl implements PaymentService{
     }
 
     @Override
-    public Payment confirmPaymentCash(int paymentId) {
+    public Payment confirmPayment(int paymentId, PaymentMethod paymentMethod) {
 
         Payment confirmedPayment = findById(paymentId);
 
         confirmedPayment.setCurrency("IDR");
-        confirmedPayment.setPaymentMethod(PaymentMethod.CASH);
+        confirmedPayment.setPaymentMethod(paymentMethod);
         confirmedPayment.setPaymentSource(PaymentSource.DIRECT);
         confirmedPayment.setUpdatedAt(LocalDateTime.now());
         confirmedPayment.setPaymentStatus(PaymentStatus.SUCCESS);

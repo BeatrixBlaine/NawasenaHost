@@ -45,7 +45,7 @@ public class BookingRestController {
         return "Booking with Id: " + bookingId + " deleted";
     }
 
-    @PutMapping("/bookings/{bookingId}/confirm-payment")
+    @PutMapping("/bookings/{bookingId}/confirm-booking")
     public Booking confirmBooking(@PathVariable int bookingId) {
         return bookingService.confirmBooking(bookingId);
     }

@@ -168,14 +168,16 @@ public class BookingServiceImpl implements BookingService{
     @Override
     public Booking confirmBooking(int bookingId) {
 
-        Booking confirmedBooking = findById(bookingId);
+        Booking tempBooking = findById(bookingId);
+        tempBooking.setStatus(BookingStatus.CONFIRMED);
 
-        confirmedBooking.setStatus(BookingStatus.CONFIRMED);
+        Booking confirmedBooking = bookingRepository.save(tempBooking);
+
         availabilityClient.createBooking(
                 confirmedBooking.getRoomId(),
                 confirmedBooking.getCheckInDate(),
                 confirmedBooking.getCheckOutDate());
 
-        return bookingRepository.save(confirmedBooking);
+        return confirmedBooking;
     }
 }

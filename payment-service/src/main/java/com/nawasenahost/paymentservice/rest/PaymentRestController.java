@@ -2,6 +2,7 @@ package com.nawasenahost.paymentservice.rest;
 
 import com.nawasenahost.paymentservice.dto.PaymentRequest;
 import com.nawasenahost.paymentservice.entity.Payment;
+import com.nawasenahost.paymentservice.entity.PaymentMethod;
 import com.nawasenahost.paymentservice.service.PaymentService;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
@@ -45,9 +46,10 @@ public class PaymentRestController {
         return "Payment with Id: " + paymentId + " deleted";
     }
 
-    @PutMapping("/payments/{paymentId}/confirm-cash")
-    public Payment confirmPayment(@PathVariable int paymentId) {
-        return paymentService.confirmPaymentCash(paymentId);
+    @PostMapping("/payments/confirm-payment")
+    public Payment confirmPayment(@RequestParam int paymentId,
+                                  @RequestParam PaymentMethod paymentMethod) {
+        return paymentService.confirmPayment(paymentId, paymentMethod);
     }
 
     @PostMapping("/payments/create-payment")
