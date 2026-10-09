@@ -135,11 +135,6 @@ public class BookingServiceImpl implements BookingService{
 
         Booking savedBooking = bookingRepository.save(tempBooking);
 
-        availabilityClient.createBooking(
-                bookingRequest.getRoomId(),
-                bookingRequest.getCheckInDate(),
-                bookingRequest.getCheckOutDate());
-
         paymentClient.createPayment(savedBooking.getBookingId());
 
         return savedBooking;
@@ -176,6 +171,10 @@ public class BookingServiceImpl implements BookingService{
         Booking confirmedBooking = findById(bookingId);
 
         confirmedBooking.setStatus(BookingStatus.CONFIRMED);
+        availabilityClient.createBooking(
+                confirmedBooking.getRoomId(),
+                confirmedBooking.getCheckInDate(),
+                confirmedBooking.getCheckOutDate());
 
         return bookingRepository.save(confirmedBooking);
     }
