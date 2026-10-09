@@ -2,6 +2,7 @@ package com.nawasenahost.paymentservice.dto;
 
 import com.nawasenahost.paymentservice.entity.PaymentMethod;
 import com.nawasenahost.paymentservice.entity.PaymentSource;
+import com.nawasenahost.paymentservice.entity.PaymentStatus;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
@@ -30,6 +31,7 @@ public class PaymentRequest {
     private String provider;
 
     private String transactionId;
+
 
     public @Min(value = 1, message = "Booking ID must be greater than 0") int getBookingId() {
         return bookingId;

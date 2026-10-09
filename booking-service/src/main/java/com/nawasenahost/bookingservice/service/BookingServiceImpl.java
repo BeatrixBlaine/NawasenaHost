@@ -1,9 +1,6 @@
 package com.nawasenahost.bookingservice.service;
 
-import com.nawasenahost.bookingservice.client.AvailabilityClient;
-import com.nawasenahost.bookingservice.client.HotelClient;
-import com.nawasenahost.bookingservice.client.RoomClient;
-import com.nawasenahost.bookingservice.client.UserClient;
+import com.nawasenahost.bookingservice.client.*;
 import com.nawasenahost.bookingservice.dto.BookingRequest;
 import com.nawasenahost.bookingservice.entity.Booking;
 import com.nawasenahost.bookingservice.entity.BookingStatus;
@@ -25,18 +22,21 @@ public class BookingServiceImpl implements BookingService{
     private final RoomClient roomClient;
     private final AvailabilityClient availabilityClient;
     private final UserClient userClient;
+    private final PaymentClient paymentClient;
 
     @Autowired
     public BookingServiceImpl(BookingRepository bookingRepository,
                               HotelClient hotelClient,
                               RoomClient roomClient,
                               AvailabilityClient availabilityClient,
-                              UserClient userClient) {
+                              UserClient userClient,
+                              PaymentClient paymentClient) {
         this.bookingRepository = bookingRepository;
         this.hotelClient = hotelClient;
         this.roomClient = roomClient;
         this.availabilityClient = availabilityClient;
         this.userClient = userClient;
+        this.paymentClient = paymentClient;
     }
 
     // checks if user exist
@@ -140,6 +140,8 @@ public class BookingServiceImpl implements BookingService{
                 bookingRequest.getCheckInDate(),
                 bookingRequest.getCheckOutDate());
 
+        paymentClient.createPayment(savedBooking.getBookingId());
+
         return savedBooking;
     }
 
@@ -166,5 +168,15 @@ public class BookingServiceImpl implements BookingService{
         tempBooking.setGuestCount(bookingRequest.getGuestCount());
 
         return bookingRepository.save(tempBooking);
+    }
+
+    @Override
+    public Booking confirmBooking(int bookingId) {
+
+        Booking confirmedBooking = findById(bookingId);
+
+        confirmedBooking.setStatus(BookingStatus.CONFIRMED);
+
+        return bookingRepository.save(confirmedBooking);
     }
 }

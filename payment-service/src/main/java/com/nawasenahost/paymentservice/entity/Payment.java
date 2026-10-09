@@ -16,8 +16,13 @@ public class Payment {
     private BigDecimal amount;
     private String currency;
 
+    @Enumerated(EnumType.STRING)
     private PaymentStatus paymentStatus;
+
+    @Enumerated(EnumType.STRING)
     private PaymentMethod paymentMethod;
+
+    @Enumerated(EnumType.STRING)
     private PaymentSource paymentSource;
 
     private String provider;

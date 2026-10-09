@@ -12,5 +12,6 @@ public interface BookingService {
     Booking save(BookingRequest bookingRequest);
     void deleteById(int id);
     Booking update(int id, BookingRequest bookingRequest);
+    Booking confirmBooking(int bookingId);
 
 }
