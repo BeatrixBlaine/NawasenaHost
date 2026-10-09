@@ -57,4 +57,9 @@ public class PaymentRestController {
         return paymentService.createPayment(bookingId);
     }
 
+    @PutMapping("/payments/cancel-payment-by-booking-id")
+    public Payment cancelPaymentByBookingId(@RequestParam int bookingId) {
+        return paymentService.cancelPaymentByBookingId(bookingId);
+    }
+
 }

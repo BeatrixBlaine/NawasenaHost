@@ -31,4 +31,10 @@ public class GlobalRestExceptionHandler {
     public String handleUserNotFound(UserNotFoundException e) {
         return e.getMessage();
     }
+
+    @ExceptionHandler(BookingCannotBeCancelledException.class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public String handleBookingCannotBeCancelled(BookingCannotBeCancelledException e) {
+        return e.getMessage();
+    }
 }

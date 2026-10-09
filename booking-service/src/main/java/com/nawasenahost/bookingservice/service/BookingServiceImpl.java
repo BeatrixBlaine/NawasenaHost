@@ -180,4 +180,20 @@ public class BookingServiceImpl implements BookingService{
 
         return confirmedBooking;
     }
+
+    @Override
+    public Booking cancelPendingBooking(int bookingId) {
+
+        Booking tempBooking = findById(bookingId);
+
+        if (tempBooking.getStatus() != BookingStatus.PENDING) {
+            throw new BookingCannotBeCancelledException("Only pending booking can be cancelled");
+        }
+
+        tempBooking.setStatus(BookingStatus.CANCELLED);
+        Booking cancelledBooking = bookingRepository.save(tempBooking);
+        paymentClient.cancelPaymentByBookingId(tempBooking.getBookingId());
+
+        return cancelledBooking;
+    }
 }

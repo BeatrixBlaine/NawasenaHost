@@ -13,5 +13,6 @@ public interface BookingService {
     void deleteById(int id);
     Booking update(int id, BookingRequest bookingRequest);
     Booking confirmBooking(int bookingId);
+    Booking cancelPendingBooking(int bookingId);
 
 }

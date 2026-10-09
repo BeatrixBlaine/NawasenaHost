@@ -157,5 +157,16 @@ public class PaymentServiceImpl implements PaymentService{
         return paymentRequest;
     }
 
+    @Override
+    public Payment cancelPaymentByBookingId(int bookingId) {
+
+        Payment cancelledPayment = paymentRepository.findByBookingId(bookingId);
+
+        cancelledPayment.setUpdatedAt(LocalDateTime.now());
+        cancelledPayment.setPaymentStatus(PaymentStatus.CANCELLED);
+
+        return paymentRepository.save(cancelledPayment);
+    }
+
 
 }

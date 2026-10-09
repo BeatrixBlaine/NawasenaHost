@@ -16,5 +16,6 @@ public interface PaymentService {
     Payment save(PaymentRequest paymentRequest);
     Payment confirmPayment(int paymentId, PaymentMethod paymentMethod);
     PaymentRequest createPayment(int bookingId);
+    Payment cancelPaymentByBookingId(int bookingId);
 
 }

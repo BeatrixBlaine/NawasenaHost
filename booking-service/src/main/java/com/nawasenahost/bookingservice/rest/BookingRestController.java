@@ -49,4 +49,11 @@ public class BookingRestController {
     public Booking confirmBooking(@PathVariable int bookingId) {
         return bookingService.confirmBooking(bookingId);
     }
+
+    @DeleteMapping("/bookings/cancel-pending-booking")
+    public Booking cancelPendingBooking(@RequestParam int bookingId) {
+        return bookingService.cancelPendingBooking(bookingId);
+    }
+
+
 }
