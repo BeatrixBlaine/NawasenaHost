@@ -13,8 +13,8 @@ public class Booking {
     @Column(name = "booking_id")
     private int bookingId;
 
-    @Column(name = "user_id")
-    private int userId;
+    @Column(name = "client_id")
+    private int clientId;
 
     @Column(name = "hotel_id")
     private int hotelId;
@@ -37,8 +37,9 @@ public class Booking {
 
     public Booking(){};
 
-    public Booking(int userId, int hotelId, int roomId, LocalDate checkInDate, LocalDate checkOutDate, int guestCount, BookingStatus status) {
-        this.userId = userId;
+    public Booking(int bookingId, int clientId, int hotelId, int roomId, LocalDate checkInDate, LocalDate checkOutDate, int guestCount, BookingStatus status) {
+        this.bookingId = bookingId;
+        this.clientId = clientId;
         this.hotelId = hotelId;
         this.roomId = roomId;
         this.checkInDate = checkInDate;
@@ -47,20 +48,20 @@ public class Booking {
         this.status = status;
     }
 
+    public int getClientId() {
+        return clientId;
+    }
+
+    public void setClientId(int clientId) {
+        this.clientId = clientId;
+    }
+
     public int getBookingId() {
         return bookingId;
     }
 
     public void setBookingId(int bookingId) {
         this.bookingId = bookingId;
-    }
-
-    public int getUserId() {
-        return userId;
-    }
-
-    public void setUserId(int userId) {
-        this.userId = userId;
     }
 
     public int getHotelId() {

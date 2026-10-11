@@ -4,6 +4,7 @@ public enum AvailabilityStatus {
 
     BOOKED,
     MAINTENANCE,
-    BLOCKED
+    BLOCKED,
+    CANCELLED
 
 }
