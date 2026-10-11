@@ -111,4 +111,18 @@ public class Booking {
     public void setStatus(BookingStatus status) {
         this.status = status;
     }
+
+    @Override
+    public String toString() {
+        return "Booking{" +
+                "bookingId=" + bookingId +
+                ", clientId=" + clientId +
+                ", hotelId=" + hotelId +
+                ", roomId=" + roomId +
+                ", checkInDate=" + checkInDate +
+                ", checkOutDate=" + checkOutDate +
+                ", guestCount=" + guestCount +
+                ", status=" + status +
+                '}';
+    }
 }
