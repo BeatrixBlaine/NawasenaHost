@@ -150,6 +150,7 @@ public class BookingServiceImpl implements BookingService{
     @Override
     public Booking update(int id, BookingRequest bookingRequest) {
 
+        validateCustomer(bookingRequest.getCustomerId());
         validateDates(bookingRequest);
         validateHotel(bookingRequest.getHotelId());
         validateRoom(bookingRequest.getRoomId());
