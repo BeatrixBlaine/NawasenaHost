@@ -22,18 +22,30 @@ public class BookingServiceImpl implements BookingService{
     private final RoomClient roomClient;
     private final AvailabilityClient availabilityClient;
     private final PaymentClient paymentClient;
+    private final CustomerClient customerClient;
 
     @Autowired
     public BookingServiceImpl(BookingRepository bookingRepository,
                               HotelClient hotelClient,
                               RoomClient roomClient,
                               AvailabilityClient availabilityClient,
-                              PaymentClient paymentClient) {
+                              PaymentClient paymentClient,
+                              CustomerClient customerClient) {
         this.bookingRepository = bookingRepository;
         this.hotelClient = hotelClient;
         this.roomClient = roomClient;
         this.availabilityClient = availabilityClient;
         this.paymentClient = paymentClient;
+        this.customerClient = customerClient;
+    }
+
+    // checks if customer exist
+    public void validateCustomer(int customerId) {
+        try {
+            customerClient.getCustomer(customerId);
+        } catch (FeignException.NotFound e) {
+            throw new CustomerNotFoundException("Customer with Id: " + customerId + " not found");
+        }
     }
 
 
@@ -97,6 +109,7 @@ public class BookingServiceImpl implements BookingService{
     @Override
     public Booking save(BookingRequest bookingRequest) {
 
+        validateCustomer(bookingRequest.getCustomerId());
         validateDates(bookingRequest);
         validateHotel(bookingRequest.getHotelId());
         validateRoom(bookingRequest.getRoomId());
@@ -113,7 +126,7 @@ public class BookingServiceImpl implements BookingService{
         }
 
         Booking tempBooking = new Booking();
-        tempBooking.setClientId(bookingRequest.getClientId());
+        tempBooking.setCustomerId(bookingRequest.getCustomerId());
         tempBooking.setHotelId(bookingRequest.getHotelId());
         tempBooking.setRoomId(bookingRequest.getRoomId());
         tempBooking.setCheckInDate(bookingRequest.getCheckInDate());
@@ -142,7 +155,7 @@ public class BookingServiceImpl implements BookingService{
         validateRoom(bookingRequest.getRoomId());
 
         Booking tempBooking = findById(id);
-        tempBooking.setClientId(bookingRequest.getClientId());
+        tempBooking.setCustomerId(bookingRequest.getCustomerId());
         tempBooking.setHotelId(bookingRequest.getHotelId());
         tempBooking.setRoomId(bookingRequest.getRoomId());
         tempBooking.setCheckInDate(bookingRequest.getCheckInDate());

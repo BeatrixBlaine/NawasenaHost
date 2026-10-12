@@ -13,8 +13,8 @@ public class Booking {
     @Column(name = "booking_id")
     private int bookingId;
 
-    @Column(name = "client_id")
-    private int clientId;
+    @Column(name = "customer_id")
+    private int customerId;
 
     @Column(name = "hotel_id")
     private int hotelId;
@@ -37,9 +37,8 @@ public class Booking {
 
     public Booking(){};
 
-    public Booking(int bookingId, int clientId, int hotelId, int roomId, LocalDate checkInDate, LocalDate checkOutDate, int guestCount, BookingStatus status) {
-        this.bookingId = bookingId;
-        this.clientId = clientId;
+    public Booking(int customerId, int hotelId, int roomId, LocalDate checkInDate, LocalDate checkOutDate, int guestCount, BookingStatus status) {
+        this.customerId = customerId;
         this.hotelId = hotelId;
         this.roomId = roomId;
         this.checkInDate = checkInDate;
@@ -48,12 +47,12 @@ public class Booking {
         this.status = status;
     }
 
-    public int getClientId() {
-        return clientId;
+    public int getCustomerId() {
+        return customerId;
     }
 
-    public void setClientId(int clientId) {
-        this.clientId = clientId;
+    public void setCustomerId(int customerId) {
+        this.customerId = customerId;
     }
 
     public int getBookingId() {
@@ -112,17 +111,4 @@ public class Booking {
         this.status = status;
     }
 
-    @Override
-    public String toString() {
-        return "Booking{" +
-                "bookingId=" + bookingId +
-                ", clientId=" + clientId +
-                ", hotelId=" + hotelId +
-                ", roomId=" + roomId +
-                ", checkInDate=" + checkInDate +
-                ", checkOutDate=" + checkOutDate +
-                ", guestCount=" + guestCount +
-                ", status=" + status +
-                '}';
-    }
 }

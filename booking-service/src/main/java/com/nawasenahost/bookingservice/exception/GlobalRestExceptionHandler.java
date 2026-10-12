@@ -26,9 +26,9 @@ public class GlobalRestExceptionHandler {
         return e.getMessage();
     }
 
-    @ExceptionHandler(UserNotFoundException.class)
+    @ExceptionHandler(CustomerNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    public String handleUserNotFound(UserNotFoundException e) {
+    public String handleUserNotFound(CustomerNotFoundException e) {
         return e.getMessage();
     }
 

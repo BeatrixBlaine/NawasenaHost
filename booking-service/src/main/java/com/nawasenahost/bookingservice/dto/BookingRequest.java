@@ -10,7 +10,7 @@ import java.time.LocalDate;
 public class BookingRequest {
 
     @Min(value = 1, message = "User ID must be greater than 0")
-    private int clientId;
+    private int customerId;
 
     @Min(value = 1, message = "Hotel ID must be greater than 0")
     private int hotelId;
@@ -29,12 +29,12 @@ public class BookingRequest {
     @Min(value = 1, message = "Guest count must be at least 1")
     private int guestCount;
 
-    public @Min(value = 1, message = "User ID must be greater than 0") int getClientId() {
-        return clientId;
+    public @Min(value = 1, message = "User ID must be greater than 0") int getCustomerId() {
+        return customerId;
     }
 
-    public void setClientId(@Min(value = 1, message = "User ID must be greater than 0") int clientId) {
-        this.clientId = clientId;
+    public void setCustomerId(@Min(value = 1, message = "User ID must be greater than 0") int customerId) {
+        this.customerId = customerId;
     }
 
     public @Min(value = 1, message = "Hotel ID must be greater than 0") int getHotelId() {
