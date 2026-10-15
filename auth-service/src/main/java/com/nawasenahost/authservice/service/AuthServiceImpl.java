@@ -1,4 +1,7 @@
 package com.nawasenahost.authservice.service;
 
-public class AuthServiceImpl {
+import org.springframework.stereotype.Service;
+
+@Service
+public class AuthServiceImpl implements AuthService{
 }

@@ -24,7 +24,9 @@ public class SecurityConfig {
             throws Exception {
 
         http.authorizeHttpRequests(configurer ->
-                configurer.anyRequest().authenticated()
+                configurer.
+                        requestMatchers("/api/auth/login").permitAll().
+                        anyRequest().authenticated()
         );
 
         http.httpBasic(Customizer.withDefaults());
