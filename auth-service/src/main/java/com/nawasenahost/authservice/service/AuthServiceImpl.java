@@ -6,7 +6,9 @@ import com.nawasenahost.authservice.entity.Auth;
 import com.nawasenahost.authservice.exception.UserNotFoundException;
 import com.nawasenahost.authservice.repository.AuthRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -18,11 +20,18 @@ public class AuthServiceImpl implements AuthService{
 
     private final AuthRepository authRepository;
     private final PasswordEncoder passwordEncoder;
+    private final AuthenticationManager authenticationManager;
+    private final JwtService jwtService;
 
     @Autowired
-    public AuthServiceImpl(AuthRepository authRepository, PasswordEncoder passwordEncoder) {
+    public AuthServiceImpl(AuthRepository authRepository,
+                           PasswordEncoder passwordEncoder,
+                           AuthenticationManager authenticationManager,
+                           JwtService jwtService) {
         this.authRepository = authRepository;
         this.passwordEncoder = passwordEncoder;
+        this.authenticationManager = authenticationManager;
+        this.jwtService = jwtService;
     }
 
     @Override
@@ -48,17 +57,22 @@ public class AuthServiceImpl implements AuthService{
     @Override
     public LoginResponse login(LoginRequest loginRequest) {
 
-        Auth tempAuth = authRepository.findByUsername(loginRequest.getUsername()).
-                orElseThrow(() -> new BadCredentialsException("Invalid username or password"));
+        Authentication authenticatedUser = authenticationManager.
+                authenticate(new UsernamePasswordAuthenticationToken(
+                        loginRequest.getUsername(),
+                        loginRequest.getPassword()
+                ));
 
-        if (!tempAuth.isEnabled()) {
-            throw new BadCredentialsException("Account is disabled");
-        }
+        Optional<Auth> tempAuth = authRepository.findByUsername(authenticatedUser.getName());
+        Auth theAuth = tempAuth.get();
 
-        if (!passwordEncoder.matches(loginRequest.getPassword(), tempAuth.getPassword())) {
-            throw new BadCredentialsException("Invalid username or password");
-        }
+        LoginResponse response = new LoginResponse();
+        response.setToken(jwtService.generateToken(authenticatedUser.getName()));
+        response.setAuthId(theAuth.getAuthId());
+        response.setHotelId(theAuth.getHotelId());
+        response.setRole(theAuth.getRole().name());
+        response.setTokenType("Bearer");
 
-        return null;
+        return response;
     }
 }

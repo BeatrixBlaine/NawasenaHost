@@ -2,13 +2,15 @@ package com.nawasenahost.authservice.dto;
 
 public class LoginResponse {
 
-    private String authId;
+    private int authId;
     private String role;
     private int hotelId;
     private String token;
     private String tokenType;
 
-    public LoginResponse(String authId, String role, int hotelId, String token, String tokenType) {
+    public LoginResponse(){};
+
+    public LoginResponse(int authId, String role, int hotelId, String token, String tokenType) {
         this.authId = authId;
         this.role = role;
         this.hotelId = hotelId;
@@ -16,11 +18,11 @@ public class LoginResponse {
         this.tokenType = tokenType;
     }
 
-    public String getAuthId() {
+    public int getAuthId() {
         return authId;
     }
 
-    public void setAuthId(String authId) {
+    public void setAuthId(int authId) {
         this.authId = authId;
     }
 
