@@ -17,6 +17,9 @@ public class Auth {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer authId;
 
+    @Column(name = "hotel_id")
+    private int hotelId;
+
     @Column(name = "username")
     private String username;
 
@@ -41,7 +44,8 @@ public class Auth {
 
     public Auth() {}
 
-    public Auth(String username, String email, String password, AuthRole role) {
+    public Auth(int hotelId, String username, String email, String password, AuthRole role) {
+        this.hotelId = hotelId;
         this.username = username;
         this.email = email;
         this.password = password;
@@ -58,6 +62,14 @@ public class Auth {
     @PreUpdate
     protected void onUpdate() {
         updatedAt = LocalDateTime.now();
+    }
+
+    public int getHotelId() {
+        return hotelId;
+    }
+
+    public void setHotelId(int hotelId) {
+        this.hotelId = hotelId;
     }
 
     public Integer getAuthId() {
