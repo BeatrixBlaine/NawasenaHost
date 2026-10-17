@@ -1,19 +1,24 @@
 package com.nawasenahost.authservice.service;
 
+import com.nawasenahost.authservice.dto.AuthRequest;
+import com.nawasenahost.authservice.dto.AuthUpdateRequest;
 import com.nawasenahost.authservice.dto.LoginRequest;
 import com.nawasenahost.authservice.dto.LoginResponse;
 import com.nawasenahost.authservice.entity.Auth;
+import com.nawasenahost.authservice.entity.AuthRole;
 import com.nawasenahost.authservice.exception.UserNotFoundException;
 import com.nawasenahost.authservice.repository.AuthRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class AuthServiceImpl implements AuthService{
@@ -21,34 +26,67 @@ public class AuthServiceImpl implements AuthService{
     private final AuthRepository authRepository;
     private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;
+    private final PasswordEncoder passwordEncoder;
 
     @Autowired
     public AuthServiceImpl(AuthRepository authRepository,
                            AuthenticationManager authenticationManager,
-                           JwtService jwtService) {
+                           JwtService jwtService,
+                           PasswordEncoder passwordEncoder) {
         this.authRepository = authRepository;
         this.authenticationManager = authenticationManager;
         this.jwtService = jwtService;
+        this.passwordEncoder = passwordEncoder;
+    }
+
+    private Auth getCurrentUser() {
+        Authentication authentication =
+                SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null
+                || !authentication.isAuthenticated()
+                || authentication.getName().equals("anonymousUser")) {
+            throw new AccessDeniedException("Authentication required");
+        }
+
+        return authRepository.findByUsername(authentication.getName())
+                .orElseThrow(() ->
+                        new UsernameNotFoundException("Authenticated account not found"));
+    }
+
+    private Auth getCurrentManager() {
+        Auth currentUser = getCurrentUser();
+
+        if (currentUser.getRole() != AuthRole.MANAGER) {
+            throw new AccessDeniedException(
+                    "Only managers can manage staff accounts"
+            );
+        }
+
+        return currentUser;
     }
 
     @Override
     public List<Auth> findAll() {
-        return authRepository.findAll();
+        Auth currentManager = getCurrentManager();
+
+        return authRepository.findAllByHotelId(currentManager.getHotelId());
     }
 
     @Override
     public Auth findById(int id) {
 
-        Optional<Auth> tempAuth = authRepository.findById(id);
-        Auth theAuth;
+        Auth currentManager = getCurrentManager();
 
-        if(tempAuth.isPresent()) {
-            theAuth = tempAuth.get();
-        } else {
-            throw new UserNotFoundException("User with Id: " + id + " not found");
+        Auth targetUser = authRepository.findById(id)
+                .orElseThrow(() ->
+                        new UserNotFoundException("User not found"));
+
+        if (targetUser.getHotelId() != currentManager.getHotelId()) {
+            throw new UserNotFoundException("User not found");
         }
 
-        return theAuth;
+        return targetUser;
     }
 
     @Override
@@ -72,4 +110,71 @@ public class AuthServiceImpl implements AuthService{
 
         return response;
     }
+
+    @Override
+    public void deleteById(int id) {
+        findById(id);
+        authRepository.deleteById(id);
+    }
+
+    @Override
+    public Auth save(AuthRequest authRequest) {
+
+        Auth currentManager = getCurrentManager();
+
+        if (authRequest.getRole() != AuthRole.ADMIN) {
+            throw new AccessDeniedException(
+                    "Managers can only create ADMIN accounts"
+            );
+        }
+
+        if (authRepository.findByUsername(authRequest.getUsername()).isPresent()) {
+            throw new IllegalArgumentException("Username already exists");
+        }
+
+
+        Auth auth = new Auth();
+
+        auth.setHotelId(currentManager.getHotelId());
+        auth.setUsername(authRequest.getUsername());
+        auth.setEmail(authRequest.getEmail());
+        auth.setPassword(
+                passwordEncoder.encode(authRequest.getPassword())
+        );
+        auth.setRole(AuthRole.ADMIN);
+
+        return authRepository.save(auth);
+    }
+
+    @Override
+    public Auth update(int authId, AuthUpdateRequest request) {
+        Auth currentManager = getCurrentManager();
+
+        Auth targetUser = authRepository.findById(authId)
+                .orElseThrow(() ->
+                        new UserNotFoundException("User not found"));
+
+        if (targetUser.getHotelId() != currentManager.getHotelId()) {
+            throw new UserNotFoundException("User not found");
+        }
+
+        if (authRepository.findByUsername(request.getUsername())
+                .filter(existing -> existing.getAuthId() != authId)
+                .isPresent()) {
+            throw new IllegalArgumentException("Username already exists");
+        }
+
+        targetUser.setUsername(request.getUsername());
+        targetUser.setEmail(request.getEmail());
+
+        if (request.getPassword() != null
+                && !request.getPassword().isBlank()) {
+            targetUser.setPassword(
+                    passwordEncoder.encode(request.getPassword())
+            );
+        }
+
+        return authRepository.save(targetUser);
+    }
+
 }

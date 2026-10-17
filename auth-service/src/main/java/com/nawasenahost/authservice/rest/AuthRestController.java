@@ -1,5 +1,7 @@
 package com.nawasenahost.authservice.rest;
 
+import com.nawasenahost.authservice.dto.AuthRequest;
+import com.nawasenahost.authservice.dto.AuthUpdateRequest;
 import com.nawasenahost.authservice.dto.LoginRequest;
 import com.nawasenahost.authservice.dto.LoginResponse;
 import com.nawasenahost.authservice.entity.Auth;
@@ -32,6 +34,17 @@ public class AuthRestController {
     @GetMapping("/auth/users/{userId}")
     public Auth getUser(@PathVariable int userId) {
         return authService.findById(userId);
+    }
+
+    @PutMapping("/auth/users/{userId}")
+    public Auth updateUser(@PathVariable int userId,
+                           @Valid @RequestBody AuthUpdateRequest authUpdateRequest) {
+        return authService.update(userId, authUpdateRequest);
+    }
+
+    @PostMapping("/auth/users")
+    public Auth addUser(@Valid @RequestBody AuthRequest authRequest) {
+        return authService.save(authRequest);
     }
 
 }

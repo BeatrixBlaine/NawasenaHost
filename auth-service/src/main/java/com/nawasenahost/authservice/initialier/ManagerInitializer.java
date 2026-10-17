@@ -65,7 +65,5 @@ public class ManagerInitializer implements CommandLineRunner {
         validateHotel(hotelId);
 
         authRepository.save(manager);
-
-        System.out.println("Manager account initialized successfully");
     }
 }
