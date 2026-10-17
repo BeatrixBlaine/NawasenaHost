@@ -1,11 +1,11 @@
 package com.nawasenahost.authservice.rest;
 
+import com.nawasenahost.authservice.dto.LoginRequest;
+import com.nawasenahost.authservice.dto.LoginResponse;
 import com.nawasenahost.authservice.entity.Auth;
 import com.nawasenahost.authservice.service.AuthService;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import jakarta.validation.Valid;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -19,9 +19,9 @@ public class AuthRestController {
         this.authService = authService;
     }
 
-    @GetMapping("/auth/login")
-    public String helloWorld() {
-        return "Hello world";
+    @PostMapping("/auth/login")
+    public LoginResponse login(@Valid @RequestBody LoginRequest loginRequest) {
+        return authService.login(loginRequest);
     }
 
     @GetMapping("/auth/users")

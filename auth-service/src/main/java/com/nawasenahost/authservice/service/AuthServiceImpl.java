@@ -9,7 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -19,17 +19,14 @@ import java.util.Optional;
 public class AuthServiceImpl implements AuthService{
 
     private final AuthRepository authRepository;
-    private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;
 
     @Autowired
     public AuthServiceImpl(AuthRepository authRepository,
-                           PasswordEncoder passwordEncoder,
                            AuthenticationManager authenticationManager,
                            JwtService jwtService) {
         this.authRepository = authRepository;
-        this.passwordEncoder = passwordEncoder;
         this.authenticationManager = authenticationManager;
         this.jwtService = jwtService;
     }
@@ -63,8 +60,8 @@ public class AuthServiceImpl implements AuthService{
                         loginRequest.getPassword()
                 ));
 
-        Optional<Auth> tempAuth = authRepository.findByUsername(authenticatedUser.getName());
-        Auth theAuth = tempAuth.get();
+        Auth theAuth = authRepository.findByUsername(authenticatedUser.getName())
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
         LoginResponse response = new LoginResponse();
         response.setToken(jwtService.generateToken(authenticatedUser.getName()));
