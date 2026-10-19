@@ -13,7 +13,6 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -93,19 +92,11 @@ public class AuthServiceImpl implements AuthService{
     @Override
     public LoginResponse login(LoginRequest loginRequest) {
 
-        Authentication authenticatedUser;
-
-        try {
-            authenticatedUser = authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(
-                            loginRequest.getUsername(),
-                            loginRequest.getPassword()
-                    )
-            );
-        } catch (AuthenticationException e) {
-            e.printStackTrace();
-            throw e;
-        }
+        Authentication authenticatedUser = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(
+                        loginRequest.getUsername(),
+                        loginRequest.getPassword()
+                ));
 
         Auth theAuth = authRepository.findByUsername(authenticatedUser.getName())
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
