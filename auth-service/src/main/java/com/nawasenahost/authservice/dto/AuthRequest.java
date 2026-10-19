@@ -8,9 +8,6 @@ import jakarta.validation.constraints.Positive;
 
 public class AuthRequest {
 
-    @Positive(message = "Hotel Id must be greater than 0")
-    private int hotelId;
-
     @NotBlank(message = "Username is required")
     private String username;
 
@@ -23,14 +20,6 @@ public class AuthRequest {
 
     @NotNull(message = "Role is required")
     private AuthRole role;
-
-    public int getHotelId() {
-        return hotelId;
-    }
-
-    public void setHotelId(int hotelId) {
-        this.hotelId = hotelId;
-    }
 
     public String getUsername() {
         return username;
