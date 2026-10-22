@@ -106,7 +106,6 @@ public class AuthServiceImpl implements AuthService{
         response.setAuthId(theAuth.getAuthId());
         response.setHotelId(theAuth.getHotelId());
         response.setRole(theAuth.getRole().name());
-        response.setTokenType("Bearer");
 
         return response;
     }

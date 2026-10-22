@@ -3,6 +3,7 @@ package com.nawasenahost.paymentservice.rest;
 import com.nawasenahost.paymentservice.dto.PaymentRequest;
 import com.nawasenahost.paymentservice.entity.Payment;
 import com.nawasenahost.paymentservice.entity.PaymentMethod;
+import com.nawasenahost.paymentservice.entity.PaymentSource;
 import com.nawasenahost.paymentservice.service.PaymentService;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
@@ -48,8 +49,9 @@ public class PaymentRestController {
 
     @PostMapping("/payments/confirm-payment")
     public Payment confirmPayment(@RequestParam int paymentId,
-                                  @RequestParam PaymentMethod paymentMethod) {
-        return paymentService.confirmPayment(paymentId, paymentMethod);
+                                  @RequestParam PaymentMethod paymentMethod,
+                                  @RequestParam PaymentSource paymentSource) {
+        return paymentService.confirmPayment(paymentId, paymentMethod, paymentSource);
     }
 
     @PostMapping("/payments/create-payment")
