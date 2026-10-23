@@ -155,5 +155,64 @@
     </div>
 </div>
 
+
+
+<script>
+    const sidebar = document.getElementById('sidebar');
+    const toggle = document.getElementById('sidebar-toggle');
+
+    if (sidebar && toggle) {
+        function openSidebar() {
+            sidebar.classList.remove('-translate-x-full');
+            toggle.setAttribute('aria-expanded', 'true');
+            toggle.setAttribute('aria-label', 'Close navigation menu');
+        }
+
+        function closeSidebar() {
+            sidebar.classList.add('-translate-x-full');
+            toggle.setAttribute('aria-expanded', 'false');
+            toggle.setAttribute('aria-label', 'Open navigation menu');
+        }
+
+        toggle.addEventListener('click', () => {
+            const isClosed = sidebar.classList.contains('-translate-x-full');
+
+            if (isClosed) {
+                openSidebar();
+            } else {
+                closeSidebar();
+            }
+        });
+
+        document.addEventListener('click', (event) => {
+            const isMobile = window.innerWidth < 1024;
+            const clickedOutside =
+                !sidebar.contains(event.target) &&
+                !toggle.contains(event.target);
+
+            if (isMobile && clickedOutside) {
+                closeSidebar();
+            }
+        });
+
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape') {
+                closeSidebar();
+            }
+        });
+
+        window.addEventListener('resize', () => {
+            if (window.innerWidth >= 1024) {
+                sidebar.classList.remove('-translate-x-full');
+                toggle.setAttribute('aria-expanded', 'false');
+                toggle.setAttribute('aria-label', 'Open navigation menu');
+            } else {
+                sidebar.classList.add('-translate-x-full');
+            }
+        });
+    }
+</script>
+
 </body>
+
 </html>

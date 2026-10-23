@@ -1,26 +1,57 @@
 
 <header th:fragment="topbar"
         xmlns:th="http://www.thymeleaf.org"
-        class="flex flex-wrap items-center justify-between gap-4 border-b border-stone-200 bg-white px-6 py-4 lg:px-8">
+        class="flex items-center justify-between gap-3 border-b border-stone-200 bg-white px-4 py-4 sm:px-6 lg:px-8">
 
-    <div>
-        <p class="text-xs font-medium uppercase tracking-wider text-stone-500">
-            Current property
-        </p>
+    <!-- Left: menu button + hotel context -->
+    <div class="flex min-w-0 items-center gap-3">
 
-        <div class="mt-1 flex items-center gap-2">
-            <span class="text-emerald-800">●</span>
-            <p class="text-sm font-semibold text-stone-800">
-                Your assigned hotel
+        <!-- Mobile menu button -->
+        <button type="button"
+                id="sidebar-toggle"
+                aria-label="Open navigation menu"
+                aria-controls="sidebar"
+                aria-expanded="false"
+                class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-stone-200 text-emerald-950 transition hover:bg-stone-100 lg:hidden">
+
+            <svg xmlns="http://www.w3.org/2000/svg"
+                 class="h-5 w-5"
+                 fill="none"
+                 viewBox="0 0 24 24"
+                 stroke="currentColor"
+                 stroke-width="2"
+                 aria-hidden="true">
+                <path stroke-linecap="round"
+                      stroke-linejoin="round"
+                      d="M4 6h16M4 12h16M4 18h16"/>
+            </svg>
+        </button>
+
+        <!-- Hotel context -->
+        <div class="min-w-0">
+            <p class="text-xs font-medium uppercase tracking-wider text-stone-500">
+                Current property
             </p>
+
+            <div class="mt-1 flex items-center gap-2">
+                <span class="shrink-0 text-emerald-800">●</span>
+
+                <p class="truncate text-sm font-semibold text-stone-800">
+                    Your assigned hotel
+                </p>
+            </div>
         </div>
+
     </div>
 
-    <div class="flex items-center gap-4">
+    <!-- Right: staff profile -->
+    <div class="flex shrink-0 items-center gap-3 sm:gap-4">
+
         <div class="hidden text-right sm:block">
             <p class="text-sm font-semibold text-stone-800">
                 Staff Account
             </p>
+
             <p class="text-xs text-stone-500">
                 Hotel staff
             </p>
@@ -29,6 +60,7 @@
         <div class="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-100 font-semibold text-emerald-900">
             S
         </div>
+
     </div>
 
 </header>
