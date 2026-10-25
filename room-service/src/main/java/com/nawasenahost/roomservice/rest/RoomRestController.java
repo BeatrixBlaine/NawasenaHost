@@ -18,9 +18,9 @@ public class RoomRestController {
         this.roomService = roomService;
     }
 
-    @GetMapping("/rooms")
-    public List<Room> getRooms() {
-        return roomService.findAll();
+    @GetMapping("/rooms/{hotelId}")
+    public List<Room> getRooms(@PathVariable int hotelId) {
+        return roomService.findAll(hotelId);
     }
 
     @GetMapping("/rooms/{roomId}")

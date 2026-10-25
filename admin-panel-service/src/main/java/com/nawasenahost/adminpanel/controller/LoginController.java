@@ -1,5 +1,6 @@
 package com.nawasenahost.adminpanel.controller;
 
+import com.nawasenahost.adminpanel.dto.ErrorResponse;
 import com.nawasenahost.adminpanel.dto.LoginRequest;
 import com.nawasenahost.adminpanel.dto.LoginResponse;
 import jakarta.servlet.http.HttpSession;
@@ -30,7 +31,7 @@ public class LoginController {
 
     @GetMapping("/")
     public String defaultPage() {
-        return "redirect:/home";
+        return "redirect:/dashboard";
     }
 
     @GetMapping("/login-page")
@@ -87,12 +88,7 @@ public class LoginController {
             if (e.getStatusCode() == HttpStatus.UNAUTHORIZED) {
                 model.addAttribute(
                         "error",
-                        "Invalid username or password"
-                );
-            } else {
-                model.addAttribute(
-                        "error",
-                        "Login service error. Please try again later."
+                        new ErrorResponse(e.getResponseBodyAsString())
                 );
             }
 
@@ -101,5 +97,6 @@ public class LoginController {
         }
 
     }
+
 
 }

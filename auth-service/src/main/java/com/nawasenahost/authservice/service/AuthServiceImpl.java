@@ -117,7 +117,20 @@ public class AuthServiceImpl implements AuthService{
 
     @Override
     public void deleteById(int id) {
-        findById(id);
+        Auth currentManager = getCurrentManager();
+
+        Auth tempAuth = findById(id);
+
+        if (currentManager.getRole() != AuthRole.MANAGER) {
+            throw new AccessDeniedException(
+                    "Managers can only create ADMIN accounts"
+            );
+        }
+
+        if (tempAuth.getHotelId() != currentManager.getHotelId()) {
+            throw new AccessDeniedException("Access denied");
+        }
+
         authRepository.deleteById(id);
     }
 
@@ -128,14 +141,13 @@ public class AuthServiceImpl implements AuthService{
 
         if (authRequest.getRole() != AuthRole.ADMIN) {
             throw new AccessDeniedException(
-                    "Managers can only create ADMIN accounts"
+                    "Only managers can create accounts"
             );
         }
 
         if (authRepository.findByUsername(authRequest.getUsername()).isPresent()) {
             throw new IllegalArgumentException("Username already exists");
         }
-
 
         Auth auth = new Auth();
 

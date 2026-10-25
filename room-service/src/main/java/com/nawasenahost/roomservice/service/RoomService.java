@@ -7,7 +7,7 @@ import java.util.List;
 
 public interface RoomService {
 
-    List<Room> findAll();
+    List<Room> findAll(int hotelId);
     Room findById(int id);
     Room save(RoomRequest roomRequest);
     void deleteById(int id);
