@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rooms</title>
+
+    <style>
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+
+        th, td {
+            border: 1px solid #ccc;
+            padding: 8px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+
+<h1>Room List</h1>
+
+<p th:if="${#lists.isEmpty(rooms)}">
+    No rooms found.
+</p>
+
+<table th:unless="${#lists.isEmpty(rooms)}">
+    <thead>
+    <tr>
+        <th>Room Number</th>
+        <th>Room Type</th>
+        <th>Capacity</th>
+        <th>Price</th>
+        <th>Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    <tr th:each="room : ${rooms}">
+        <td th:text="${room.roomNumber}"></td>
+        <td th:text="${room.roomType}"></td>
+        <td th:text="${room.capacity}"></td>
+        <td th:text="${room.price}"></td>
+        <td th:text="${room.description}"></td>
+    </tr>
+    </tbody>
+</table>
+
+</body>
+</html>
+```

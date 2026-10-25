@@ -23,7 +23,7 @@ public class RoomRestController {
         return roomService.findAll(hotelId);
     }
 
-    @GetMapping("/rooms/{roomId}")
+    @GetMapping("/rooms/single-room/{roomId}")
     public Room getRoom(@PathVariable int roomId) {
         return roomService.findById(roomId);
     }

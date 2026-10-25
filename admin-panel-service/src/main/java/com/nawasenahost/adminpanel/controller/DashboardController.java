@@ -1,6 +1,7 @@
 package com.nawasenahost.adminpanel.controller;
 
 import com.nawasenahost.adminpanel.dto.RoomResponse;
+import com.nawasenahost.adminpanel.dto.SessionData;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Controller;
@@ -19,26 +20,23 @@ public class DashboardController {
         this.webClient = webClient;
     }
 
+    public SessionData getSessionData(HttpSession session) {
+        return new SessionData(
+                (String) session.getAttribute("accessToken"),
+                (String) session.getAttribute("role"),
+                (int) session.getAttribute("authId"),
+                (int) session.getAttribute("hotelId"),
+                (String) session.getAttribute("tokenType")
+        );
+    }
+
     @GetMapping("/dashboard")
     public String dashboard(HttpSession session,
                             Model model) {
 
-        String token = (String) session.getAttribute("accessToken");
-        String role = (String) session.getAttribute("role");
-        int authId = (int) session.getAttribute("authId");
-        int hotelId = (int) session.getAttribute("hotelId");
-        String tokenType = (String) session.getAttribute("tokenType");
+        SessionData data = getSessionData(session);
 
-        List<RoomResponse> rooms = webClient.get()
-                .uri("/api/rooms/{hotelId}", hotelId)
-                .headers(headers -> headers.setBearerAuth(token))
-                .retrieve()
-                .bodyToMono(new ParameterizedTypeReference<List<RoomResponse>>() {
-                })
-                .block();
-
-        model.addAttribute("role", role);
-        model.addAttribute("rooms", rooms);
+        model.addAttribute("role", data.role());
 
         return "dashboard";
     }
