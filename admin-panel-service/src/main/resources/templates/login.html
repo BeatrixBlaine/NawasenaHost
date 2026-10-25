@@ -1,10 +1,46 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NawasenaHost - Login</title>
 </head>
 <body>
 
+<h2>Admin Panel Login</h2>
+
+<p th:if="${error}" th:text="${error}" style="color: red;"></p>
+
+<form th:action="@{/login}" method="post">
+
+    <div>
+        <label for="username">Username</label>
+        <input
+                type="text"
+                id="username"
+                name="username"
+                required
+        >
+    </div>
+
+    <br>
+
+    <div>
+        <label for="password">Password</label>
+        <input
+                type="password"
+                id="password"
+                name="password"
+                required
+        >
+    </div>
+
+    <br>
+
+    <button type="submit">Login</button>
+
+</form>
+
 </body>
 </html>
+```

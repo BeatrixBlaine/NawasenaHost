@@ -1,6 +1,8 @@
 package com.nawasenahost.authservice.exception;
 
+import jakarta.validation.executable.ValidateOnExecution;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -32,6 +34,12 @@ public class GlobalRestExceptionHandler {
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public String handleUsernameNotFoundException(UsernameNotFoundException e) {
         return e.getMessage();
+    }
+
+    @ExceptionHandler(BadCredentialsException.class)
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    public String handleBadCredentialsException(BadCredentialsException e) {
+        return "Invalid username or password";
     }
 
 }

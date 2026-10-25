@@ -98,6 +98,10 @@ public class AuthServiceImpl implements AuthService{
                         loginRequest.getPassword()
                 ));
 
+        System.out.println(authenticatedUser.getAuthorities());
+        System.out.println(authenticatedUser.getCredentials());
+        System.out.println(authenticatedUser.getDetails());
+
         Auth theAuth = authRepository.findByUsername(authenticatedUser.getName())
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
@@ -106,6 +110,7 @@ public class AuthServiceImpl implements AuthService{
         response.setAuthId(theAuth.getAuthId());
         response.setHotelId(theAuth.getHotelId());
         response.setRole(theAuth.getRole().name());
+        response.setTokenType("Bearer");
 
         return response;
     }
