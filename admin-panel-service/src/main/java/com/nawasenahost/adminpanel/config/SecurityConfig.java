@@ -31,7 +31,16 @@ public class SecurityConfig {
                         .authenticationEntryPoint((request, response, authException) ->
                                 response.sendRedirect("/login-page")
                         )
-                );
+                )
+                .logout(logout -> logout
+                .logoutUrl("/logout")
+                .logoutSuccessHandler((request, response, authentication) ->
+                        response.sendRedirect("/login-page?logout")
+                )
+                .invalidateHttpSession(true)
+                .clearAuthentication(true)
+                .deleteCookies("JSESSIONID")
+        );
 
         return http.build();
     }

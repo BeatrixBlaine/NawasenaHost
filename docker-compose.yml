@@ -1,0 +1,66 @@
+
+services:
+  eureka-server:
+    image: nawasenahost-eureka:1.0
+    container_name: nawasenahost-eureka
+    ports:
+      - "8761:8761"
+    networks:
+      - nawasenahost-network
+    restart: unless-stopped
+
+  hotel-service:
+    image: nawasenahost-hotel:1.0
+    container_name: nawasenahost-hotel
+    ports:
+      - "8081:8081"
+    environment:
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
+      SPRING_DATASOURCE_URL: jdbc:mysql://host.docker.internal:3307/nawasenahost_hotel
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: ""
+    networks:
+      - nawasenahost-network
+    depends_on:
+      - eureka-server
+    restart: unless-stopped
+
+  api-gateway:
+    image: nawasenahost-gateway:1.0
+    container_name: nawasenahost-gateway
+    ports:
+      - "8888:8888"
+    environment:
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
+    networks:
+      - nawasenahost-network
+    depends_on:
+      - eureka-server
+    restart: unless-stopped
+
+
+  auth-service:
+    image: nawasenahost-auth:1.0
+    container_name: nawasenahost-auth
+    ports:
+      - "8087:8087"
+    environment:
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
+      SPRING_DATASOURCE_URL: jdbc:mysql://host.docker.internal:3311/nawasenahost_auth
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: ""
+      NAWASENAHOST_MANAGER_USERNAME: ${NAWASENAHOST_MANAGER_USERNAME}
+      NAWASENAHOST_MANAGER_PASSWORD: ${NAWASENAHOST_MANAGER_PASSWORD}
+      NAWASENAHOST_MANAGER_EMAIL: ${NAWASENAHOST_MANAGER_EMAIL}
+      NAWASENAHOST_HOTEL_ID: ${NAWASENAHOST_HOTEL_ID}
+      JWT_SECRET: ${JWT_SECRET}
+    networks:
+      - nawasenahost-network
+    depends_on:
+      - eureka-server
+    restart: unless-stopped
+
+networks:
+  nawasenahost-network:
+    name: nawasenahost-network
+    driver: bridge
