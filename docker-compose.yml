@@ -60,6 +60,102 @@ services:
       - eureka-server
     restart: unless-stopped
 
+  customer-service:
+    image: nawasenahost-customer:1.0
+    container_name: nawasenahost-customer
+    ports:
+      - "8085:8085"
+    environment:
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
+      SPRING_DATASOURCE_URL: jdbc:mysql://host.docker.internal:3313/nawasenahost_customer
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: ""
+    networks:
+      - nawasenahost-network
+    depends_on:
+      - eureka-server
+    restart: unless-stopped
+
+  room-service:
+    image: nawasenahost-room:1.0
+    container_name: nawasenahost-room
+    ports:
+      - "8082:8082"
+    environment:
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
+      SPRING_DATASOURCE_URL: jdbc:mysql://host.docker.internal:3308/nawasenahost_room
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: ""
+    networks:
+      - nawasenahost-network
+    depends_on:
+      - eureka-server
+    restart: unless-stopped
+
+  booking-service:
+    image: nawasenahost-booking:1.0
+    container_name: nawasenahost-booking
+    ports:
+      - "8084:8084"
+    environment:
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
+      SPRING_DATASOURCE_URL: jdbc:mysql://host.docker.internal:3310/nawasenahost_booking
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: ""
+    networks:
+      - nawasenahost-network
+    depends_on:
+      - eureka-server
+    restart: unless-stopped
+
+  availability-service:
+    image: nawasenahost-availability:1.0
+    container_name: nawasenahost-availability
+    ports:
+      - "8083:8083"
+    environment:
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
+      SPRING_DATASOURCE_URL: jdbc:mysql://host.docker.internal:3309/nawasenahost_availability
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: ""
+    networks:
+      - nawasenahost-network
+    depends_on:
+      - eureka-server
+    restart: unless-stopped
+
+  payment-service:
+    image: nawasenahost-payment:1.0
+    container_name: nawasenahost-payment
+    ports:
+      - "8086:8086"
+    environment:
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
+      SPRING_DATASOURCE_URL: jdbc:mysql://host.docker.internal:3312/nawasenahost_payment
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: ""
+    networks:
+      - nawasenahost-network
+    depends_on:
+      - eureka-server
+    restart: unless-stopped
+
+  admin-panel-service:
+    image: nawasenahost-admin-panel:1.0
+    container_name: nawasenahost-admin-panel
+    ports:
+      - "8089:8089"
+    environment:
+      SPRING_APPLICATION_NAME: admin-panel-service
+      SERVER_PORT: 8089
+      AUTH_SERVICE_URL: ${AUTH_SERVICE_URL}
+    networks:
+      - nawasenahost-network
+    depends_on:
+      - eureka-server
+    restart: unless-stopped
+
+
 networks:
   nawasenahost-network:
     name: nawasenahost-network
