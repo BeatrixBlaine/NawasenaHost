@@ -1,5 +1,6 @@
 package com.nawasenahost.adminpanel.controller;
 
+import com.nawasenahost.adminpanel.dto.ErrorResponse;
 import com.nawasenahost.adminpanel.dto.RoomResponse;
 import com.nawasenahost.adminpanel.dto.SessionData;
 import jakarta.servlet.http.HttpSession;
@@ -8,6 +9,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
 
 import java.util.List;
 
@@ -36,14 +38,22 @@ public class RoomController {
 
         SessionData data = getSessionData(session);
 
-        List<RoomResponse> rooms = webClient.get()
-                .uri("/api/rooms/{hotelId}", data.hotelId())
-                .headers(headers -> headers.setBearerAuth(data.token()))
-                .retrieve()
-                .bodyToMono(new ParameterizedTypeReference<List<RoomResponse>>() {})
-                .block();
+        try {
 
-        model.addAttribute("rooms", rooms);
+            List<RoomResponse> rooms = webClient.get()
+                    .uri("/api/rooms/{hotelId}", data.hotelId())
+                    .headers(headers -> headers.setBearerAuth(data.token()))
+                    .retrieve()
+                    .bodyToMono(new ParameterizedTypeReference<List<RoomResponse>>() {})
+                    .block();
+
+            model.addAttribute("rooms", rooms);
+
+        } catch (WebClientResponseException e) {
+
+            model.addAttribute("error", new ErrorResponse(e.getResponseBodyAsString()));
+
+        }
 
         return "room";
     }
