@@ -33,7 +33,7 @@ public class JwtServiceImpl implements JwtService{
                 .subject(username)
                 .issuedAt(now)
                 .expiration(expiration)
-                .signWith(secretKey)
+                .signWith(secretKey, Jwts.SIG.HS256)
                 .compact();
     }
 }
