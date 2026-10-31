@@ -20,12 +20,6 @@ public class GlobalRestExceptionHandler {
         return e.getMessage();
     }
 
-    @ExceptionHandler(HotelNotFoundException.class)
-    @ResponseStatus(HttpStatus.NOT_FOUND)
-    public String handleHotelNotFoundException(HotelNotFoundException e) {
-        return e.getMessage();
-    }
-
     @ExceptionHandler(MethodArgumentNotValidException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public String handleMethodArgumentNotValidException(MethodArgumentNotValidException e) {

@@ -26,7 +26,7 @@ services:
     restart: unless-stopped
 
   api-gateway:
-    image: nawasenahost-gateway:1.0
+    image: nawasenahost-gateway:2.0
     container_name: nawasenahost-gateway
     ports:
       - "8888:8888"
@@ -41,7 +41,7 @@ services:
 
 
   auth-service:
-    image: nawasenahost-auth:1.0
+    image: nawasenahost-auth:2.0
     container_name: nawasenahost-auth
     ports:
       - "8087:8087"
@@ -53,7 +53,6 @@ services:
       NAWASENAHOST_MANAGER_USERNAME: ${NAWASENAHOST_MANAGER_USERNAME}
       NAWASENAHOST_MANAGER_PASSWORD: ${NAWASENAHOST_MANAGER_PASSWORD}
       NAWASENAHOST_MANAGER_EMAIL: ${NAWASENAHOST_MANAGER_EMAIL}
-      NAWASENAHOST_HOTEL_ID: ${NAWASENAHOST_HOTEL_ID}
       JWT_SECRET: ${JWT_SECRET}
     networks:
       - nawasenahost-network

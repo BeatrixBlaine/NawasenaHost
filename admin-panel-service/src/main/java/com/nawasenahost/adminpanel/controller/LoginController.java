@@ -74,11 +74,8 @@ public class LoginController {
                     );
 
              SecurityContext context = SecurityContextHolder.createEmptyContext();
-
              context.setAuthentication(authentication);
-
              SecurityContextHolder.setContext(context);
-
              session.setAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY, context);
 
              return "redirect:/dashboard";

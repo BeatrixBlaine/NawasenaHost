@@ -1,7 +1,6 @@
 package com.nawasenahost.authservice.entity;
 
 import jakarta.persistence.*;
-import org.springframework.cglib.core.Local;
 
 import java.time.LocalDateTime;
 
