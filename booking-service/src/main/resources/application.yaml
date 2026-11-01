@@ -1,0 +1,16 @@
+spring:
+  security:
+    oauth2:
+      client:
+        registration:
+          payment-client:
+            provider: nawasenahost-auth
+            client-id: booking-service
+            client-secret: ${SERVICE_CLIENT_SECRET}
+            authorization-grant-type: client_credentials
+            scope:
+              - payment.write
+
+        provider:
+          nawasenahost-auth:
+            token-uri: http://auth-service:8087/oauth2/token
