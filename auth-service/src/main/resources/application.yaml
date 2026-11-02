@@ -11,5 +11,12 @@ spring:
                 - client_secret_basic
               authorization-grant-types:
                 - client_credentials
-              scopes:
-                - hotel.read
+
+          payment-service:
+            registration:
+              client-id: payment-service
+              client-secret: ${PAYMENT_CLIENT_SECRET_BCRYPT}
+              client-authentication-methods:
+                - client_secret_basic
+              authorization-grant-types:
+                - client_credentials

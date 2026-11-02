@@ -26,7 +26,6 @@ public class SecurityConfig {
             @Value("${jwt.secret}") String secret,
             @Value("${auth.jwks-uri}") String jwksUri) {
 
-        // Existing manager JWT decoder (HS256)
         byte[] keyBytes = Base64.getDecoder().decode(secret);
 
         SecretKey key = new SecretKeySpec(keyBytes, "HmacSHA256");
@@ -36,12 +35,10 @@ public class SecurityConfig {
                 .macAlgorithm(MacAlgorithm.HS256)
                 .build();
 
-        // New service-to-service JWT decoder (RS256)
         JwtDecoder serviceJwtDecoder = NimbusJwtDecoder
                 .withJwkSetUri(jwksUri)
                 .build();
 
-        // Select decoder based on token signing algorithm
         return token -> {
             try {
                 String algorithm = SignedJWT.parse(token)
