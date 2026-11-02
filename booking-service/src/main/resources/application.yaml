@@ -3,14 +3,19 @@ spring:
     oauth2:
       client:
         registration:
-          payment-client:
-            provider: nawasenahost-auth
+          booking-client:
+            provider: auth-service
             client-id: booking-service
             client-secret: ${SERVICE_CLIENT_SECRET}
             authorization-grant-type: client_credentials
-            scope:
-              - payment.write
+            client-authentication-method: client_secret_basic
 
         provider:
-          nawasenahost-auth:
-            token-uri: http://auth-service:8087/oauth2/token
+          auth-service:
+            token-uri: http://localhost:8087/oauth2/token
+
+  cloud:
+    openfeign:
+      oauth2:
+        enabled: true
+        client-registration-id: booking-client

@@ -1,4 +1,3 @@
-
 services:
   eureka-server:
     image: nawasenahost-eureka:1.0
@@ -8,37 +7,6 @@ services:
     networks:
       - nawasenahost-network
     restart: unless-stopped
-
-  hotel-service:
-    image: nawasenahost-hotel:1.0
-    container_name: nawasenahost-hotel
-    ports:
-      - "8081:8081"
-    environment:
-      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
-      SPRING_DATASOURCE_URL: jdbc:mysql://host.docker.internal:3307/nawasenahost_hotel
-      SPRING_DATASOURCE_USERNAME: root
-      SPRING_DATASOURCE_PASSWORD: ""
-    networks:
-      - nawasenahost-network
-    depends_on:
-      - eureka-server
-    restart: unless-stopped
-
-  api-gateway:
-    image: nawasenahost-gateway:2.0
-    container_name: nawasenahost-gateway
-    ports:
-      - "8888:8888"
-    environment:
-      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
-      JWT_SECRET: ${JWT_SECRET}
-    networks:
-      - nawasenahost-network
-    depends_on:
-      - eureka-server
-    restart: unless-stopped
-
 
   auth-service:
     image: nawasenahost-auth:2.0
@@ -53,6 +21,39 @@ services:
       NAWASENAHOST_MANAGER_USERNAME: ${NAWASENAHOST_MANAGER_USERNAME}
       NAWASENAHOST_MANAGER_PASSWORD: ${NAWASENAHOST_MANAGER_PASSWORD}
       NAWASENAHOST_MANAGER_EMAIL: ${NAWASENAHOST_MANAGER_EMAIL}
+      JWT_SECRET: ${JWT_SECRET}
+      SERVICE_CLIENT_SECRET_BCRYPT: ${SERVICE_CLIENT_SECRET_BCRYPT}
+    networks:
+      - nawasenahost-network
+    depends_on:
+      - eureka-server
+    restart: unless-stopped
+
+  hotel-service:
+    image: nawasenahost-hotel:1.0
+    container_name: nawasenahost-hotel
+    ports:
+      - "8081:8081"
+    environment:
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
+      SPRING_DATASOURCE_URL: jdbc:mysql://host.docker.internal:3307/nawasenahost_hotel
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: ""
+      AUTH_JWKS_URI: http://auth-service:8087/oauth2/jwks
+    networks:
+      - nawasenahost-network
+    depends_on:
+      - eureka-server
+      - auth-service
+    restart: unless-stopped
+
+  api-gateway:
+    image: nawasenahost-gateway:2.0
+    container_name: nawasenahost-gateway
+    ports:
+      - "8888:8888"
+    environment:
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
       JWT_SECRET: ${JWT_SECRET}
     networks:
       - nawasenahost-network
@@ -70,10 +71,12 @@ services:
       SPRING_DATASOURCE_URL: jdbc:mysql://host.docker.internal:3313/nawasenahost_customer
       SPRING_DATASOURCE_USERNAME: root
       SPRING_DATASOURCE_PASSWORD: ""
+      AUTH_JWKS_URI: http://auth-service:8087/oauth2/jwks
     networks:
       - nawasenahost-network
     depends_on:
       - eureka-server
+      - auth-service
     restart: unless-stopped
 
   room-service:
@@ -86,10 +89,12 @@ services:
       SPRING_DATASOURCE_URL: jdbc:mysql://host.docker.internal:3308/nawasenahost_room
       SPRING_DATASOURCE_USERNAME: root
       SPRING_DATASOURCE_PASSWORD: ""
+      AUTH_JWKS_URI: http://auth-service:8087/oauth2/jwks
     networks:
       - nawasenahost-network
     depends_on:
       - eureka-server
+      - auth-service
     restart: unless-stopped
 
   booking-service:
@@ -102,10 +107,13 @@ services:
       SPRING_DATASOURCE_URL: jdbc:mysql://host.docker.internal:3310/nawasenahost_booking
       SPRING_DATASOURCE_USERNAME: root
       SPRING_DATASOURCE_PASSWORD: ""
+      SERVICE_CLIENT_SECRET: ${SERVICE_CLIENT_SECRET}
+      SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_AUTH_SERVICE_TOKEN_URI: http://auth-service:8087/oauth2/token
     networks:
       - nawasenahost-network
     depends_on:
       - eureka-server
+      - auth-service
     restart: unless-stopped
 
   availability-service:
@@ -118,10 +126,12 @@ services:
       SPRING_DATASOURCE_URL: jdbc:mysql://host.docker.internal:3309/nawasenahost_availability
       SPRING_DATASOURCE_USERNAME: root
       SPRING_DATASOURCE_PASSWORD: ""
+      AUTH_JWKS_URI: http://auth-service:8087/oauth2/jwks
     networks:
       - nawasenahost-network
     depends_on:
       - eureka-server
+      - auth-service
     restart: unless-stopped
 
   payment-service:
@@ -134,10 +144,12 @@ services:
       SPRING_DATASOURCE_URL: jdbc:mysql://host.docker.internal:3312/nawasenahost_payment
       SPRING_DATASOURCE_USERNAME: root
       SPRING_DATASOURCE_PASSWORD: ""
+      AUTH_JWKS_URI: http://auth-service:8087/oauth2/jwks
     networks:
       - nawasenahost-network
     depends_on:
       - eureka-server
+      - auth-service
     restart: unless-stopped
 
   admin-panel-service:
@@ -153,8 +165,8 @@ services:
       - nawasenahost-network
     depends_on:
       - eureka-server
+      - auth-service
     restart: unless-stopped
-
 
 networks:
   nawasenahost-network:
