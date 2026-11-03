@@ -9,6 +9,10 @@ spring:
             client-secret: ${PAYMENT_CLIENT_SECRET}
             authorization-grant-type: client_credentials
             client-authentication-method: client_secret_basic
+            scope:
+              - room.read
+              - booking.read
+              - booking.create
 
         provider:
           auth-service:

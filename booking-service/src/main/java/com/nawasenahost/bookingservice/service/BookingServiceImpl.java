@@ -133,6 +133,7 @@ public class BookingServiceImpl implements BookingService{
         tempBooking.setCheckOutDate(bookingRequest.getCheckOutDate());
         tempBooking.setGuestCount(bookingRequest.getGuestCount());
         tempBooking.setStatus(BookingStatus.PENDING);
+        tempBooking.setCustomerId(bookingRequest.getCustomerId());
 
         Booking savedBooking = bookingRepository.save(tempBooking);
 
@@ -162,6 +163,7 @@ public class BookingServiceImpl implements BookingService{
         tempBooking.setCheckInDate(bookingRequest.getCheckInDate());
         tempBooking.setCheckOutDate(bookingRequest.getCheckOutDate());
         tempBooking.setGuestCount(bookingRequest.getGuestCount());
+        tempBooking.setCustomerId(bookingRequest.getCustomerId());
 
         return bookingRepository.save(tempBooking);
     }

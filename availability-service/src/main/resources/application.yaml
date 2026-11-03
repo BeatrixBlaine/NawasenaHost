@@ -1,0 +1,23 @@
+spring:
+  security:
+    oauth2:
+      client:
+        registration:
+          availability-client:
+            provider: auth-service
+            client-id: availability-service
+            client-secret: ${AVAILABILITY_CLIENT_SECRET}
+            authorization-grant-type: client_credentials
+            client-authentication-method: client_secret_basic
+            scope:
+              - room.read
+
+        provider:
+          auth-service:
+            token-uri: http://localhost:8087/oauth2/token
+
+  cloud:
+    openfeign:
+      oauth2:
+        enabled: true
+        client-registration-id: availability-client

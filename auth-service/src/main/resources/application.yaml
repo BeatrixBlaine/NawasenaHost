@@ -11,6 +11,13 @@ spring:
                 - client_secret_basic
               authorization-grant-types:
                 - client_credentials
+              scopes:
+                - hotel.read
+                - room.read
+                - payment.create
+                - availability.read
+                - availability.create
+                - customer.read
 
           payment-service:
             registration:
@@ -20,3 +27,17 @@ spring:
                 - client_secret_basic
               authorization-grant-types:
                 - client_credentials
+              scopes:
+                - room.read
+                - booking.read
+
+          availability-service:
+            registration:
+              client-id: availability-service
+              client-secret: ${AVAILABILITY_CLIENT_SECRET_BCRYPT}
+              client-authentication-methods:
+                - client_secret_basic
+              authorization-grant-types:
+                - client_credentials
+              scopes:
+                - room.read
