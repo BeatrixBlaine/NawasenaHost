@@ -41,3 +41,14 @@ spring:
                 - client_credentials
               scopes:
                 - room.read
+
+          room-service:
+            registration:
+              client-id: room-service
+              client-secret: ${ROOM_CLIENT_SECRET_BCRYPT}
+              client-authentication-methods:
+                - client_secret_basic
+              authorization-grant-types:
+                - client_credentials
+              scopes:
+                - hotel.read
