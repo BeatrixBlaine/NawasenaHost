@@ -53,3 +53,14 @@ spring:
                 - client_credentials
               scopes:
                 - hotel.read
+
+          customer-service:
+            registration:
+              client-id: customer-service
+              client-name: ${CUSTOMER_CLIENT_SECRET_BCRYPT}
+              client-authentication-methods:
+                - client_secret_basic
+              authorization-grant-types:
+                - client_credentials
+              scopes:
+                - booking.create

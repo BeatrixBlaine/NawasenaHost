@@ -1,11 +1,17 @@
 package com.nawasenahost.customerservice.rest;
 
+import com.nawasenahost.customerservice.client.BookingClient;
+import com.nawasenahost.customerservice.dto.BookingRequest;
+import com.nawasenahost.customerservice.dto.BookingResponse;
+import com.nawasenahost.customerservice.dto.CreateNewBookingRequest;
 import com.nawasenahost.customerservice.dto.CustomerRequest;
 import com.nawasenahost.customerservice.entity.Customer;
 import com.nawasenahost.customerservice.service.CustomerService;
 import jakarta.validation.Valid;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -14,6 +20,7 @@ public class CustomerRestController {
 
     private final CustomerService customerService;
 
+    @Autowired
     public CustomerRestController(CustomerService customerService) {
         this.customerService = customerService;
     }
@@ -43,5 +50,10 @@ public class CustomerRestController {
     public String deleteCustomer(@PathVariable int customerId) {
         customerService.deleteById(customerId);
         return "User with Id: " + customerId + " deleted";
+    }
+
+    @PostMapping("/customers/create-new-booking")
+    public BookingResponse createNewBooking(@Valid @RequestBody CreateNewBookingRequest request) {
+        return customerService.createNewBooking(request.getCustomerRequest(), request.getBookingRequest());
     }
 }

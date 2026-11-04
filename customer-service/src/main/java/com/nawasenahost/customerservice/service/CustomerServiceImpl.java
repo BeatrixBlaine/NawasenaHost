@@ -1,5 +1,8 @@
 package com.nawasenahost.customerservice.service;
 
+import com.nawasenahost.customerservice.client.BookingClient;
+import com.nawasenahost.customerservice.dto.BookingRequest;
+import com.nawasenahost.customerservice.dto.BookingResponse;
 import com.nawasenahost.customerservice.dto.CustomerRequest;
 import com.nawasenahost.customerservice.entity.Customer;
 import com.nawasenahost.customerservice.exception.CustomerNotFoundException;
@@ -14,10 +17,13 @@ import java.util.Optional;
 public class CustomerServiceImpl implements CustomerService {
 
     private final CustomerRepository customerRepository;
+    private final BookingClient bookingClient;
 
     @Autowired
-    public CustomerServiceImpl(CustomerRepository customerRepository) {
+    public CustomerServiceImpl(CustomerRepository customerRepository,
+                               BookingClient bookingClient) {
         this.customerRepository = customerRepository;
+        this.bookingClient = bookingClient;
     }
 
     @Override
@@ -68,5 +74,24 @@ public class CustomerServiceImpl implements CustomerService {
         tempCustomer.setPhone(customerRequest.getPhone());
 
         return customerRepository.save(tempCustomer);
+    }
+
+    @Override
+    public BookingResponse createNewBooking(CustomerRequest customerRequest,
+                                            BookingRequest bookingRequest) {
+
+        Customer tempCustomer = new Customer();
+        tempCustomer.setFirstName(customerRequest.getFirstName());
+        tempCustomer.setLastName(customerRequest.getLastName());
+        tempCustomer.setEmail(customerRequest.getEmail());
+        tempCustomer.setPhone(customerRequest.getPhone());
+
+        Customer savedCustomer = customerRepository.save(tempCustomer);
+
+        bookingRequest.setCustomerId(savedCustomer.getCustomerId());
+
+        BookingResponse createdBooking = bookingClient.addBooking(bookingRequest);
+
+        return createdBooking;
     }
 }
