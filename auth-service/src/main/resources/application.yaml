@@ -30,6 +30,7 @@ spring:
               scopes:
                 - room.read
                 - booking.read
+                - booking.create
 
           availability-service:
             registration:

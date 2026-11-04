@@ -23,6 +23,9 @@ services:
       NAWASENAHOST_MANAGER_EMAIL: ${NAWASENAHOST_MANAGER_EMAIL}
       JWT_SECRET: ${JWT_SECRET}
       SERVICE_CLIENT_SECRET_BCRYPT: ${SERVICE_CLIENT_SECRET_BCRYPT}
+      PAYMENT_CLIENT_SECRET_BCRYPT: ${PAYMENT_CLIENT_SECRET_BCRYPT}
+      AVAILABILITY_CLIENT_SECRET_BCRYPT: ${AVAILABILITY_CLIENT_SECRET_BCRYPT}
+      ROOM_CLIENT_SECRET_BCRYPT: ${ROOM_CLIENT_SECRET_BCRYPT}
     networks:
       - nawasenahost-network
     depends_on:
@@ -40,6 +43,7 @@ services:
       SPRING_DATASOURCE_USERNAME: root
       SPRING_DATASOURCE_PASSWORD: ""
       AUTH_JWKS_URI: http://auth-service:8087/oauth2/jwks
+      JWT_SECRET: ${JWT_SECRET}
     networks:
       - nawasenahost-network
     depends_on:
@@ -72,6 +76,7 @@ services:
       SPRING_DATASOURCE_USERNAME: root
       SPRING_DATASOURCE_PASSWORD: ""
       AUTH_JWKS_URI: http://auth-service:8087/oauth2/jwks
+      JWT_SECRET: ${JWT_SECRET}
     networks:
       - nawasenahost-network
     depends_on:
@@ -90,6 +95,9 @@ services:
       SPRING_DATASOURCE_USERNAME: root
       SPRING_DATASOURCE_PASSWORD: ""
       AUTH_JWKS_URI: http://auth-service:8087/oauth2/jwks
+      ROOM_CLIENT_SECRET: ${ROOM_CLIENT_SECRET}
+      JWT_SECRET: ${JWT_SECRET}
+      SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_AUTH_SERVICE_TOKEN_URI: http://auth-service:8087/oauth2/token
     networks:
       - nawasenahost-network
     depends_on:
@@ -108,7 +116,9 @@ services:
       SPRING_DATASOURCE_USERNAME: root
       SPRING_DATASOURCE_PASSWORD: ""
       SERVICE_CLIENT_SECRET: ${SERVICE_CLIENT_SECRET}
+      JWT_SECRET: ${JWT_SECRET}
       SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_AUTH_SERVICE_TOKEN_URI: http://auth-service:8087/oauth2/token
+      AUTH_JWKS_URI: http://auth-service:8087/oauth2/jwks
     networks:
       - nawasenahost-network
     depends_on:
@@ -127,6 +137,9 @@ services:
       SPRING_DATASOURCE_USERNAME: root
       SPRING_DATASOURCE_PASSWORD: ""
       AUTH_JWKS_URI: http://auth-service:8087/oauth2/jwks
+      JWT_SECRET: ${JWT_SECRET}
+      SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_AUTH_SERVICE_TOKEN_URI: http://auth-service:8087/oauth2/token
+      AVAILABILITY_CLIENT_SECRET: ${AVAILABILITY_CLIENT_SECRET}
     networks:
       - nawasenahost-network
     depends_on:
@@ -145,6 +158,9 @@ services:
       SPRING_DATASOURCE_USERNAME: root
       SPRING_DATASOURCE_PASSWORD: ""
       AUTH_JWKS_URI: http://auth-service:8087/oauth2/jwks
+      JWT_SECRET: ${JWT_SECRET}
+      SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_AUTH_SERVICE_TOKEN_URI: http://auth-service:8087/oauth2/token
+      PAYMENT_CLIENT_SECRET: ${PAYMENT_CLIENT_SECRET}
     networks:
       - nawasenahost-network
     depends_on:

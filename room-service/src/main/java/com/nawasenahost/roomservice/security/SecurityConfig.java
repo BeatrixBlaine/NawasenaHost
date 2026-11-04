@@ -73,6 +73,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(configurer -> configurer
 
                         .requestMatchers(HttpMethod.GET,"/api/rooms/single-room/{roomId}").hasAuthority("SCOPE_room.read")
+                        .requestMatchers(HttpMethod.GET,"/test/hotelcalls").permitAll()
 
                         .anyRequest().authenticated())
                 .oauth2ResourceServer(configurer -> configurer
