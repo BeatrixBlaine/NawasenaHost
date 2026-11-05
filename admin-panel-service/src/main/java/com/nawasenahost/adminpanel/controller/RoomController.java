@@ -5,6 +5,7 @@ import com.nawasenahost.adminpanel.dto.RoomResponse;
 import com.nawasenahost.adminpanel.dto.SessionData;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -39,7 +40,6 @@ public class RoomController {
         SessionData data = getSessionData(session);
 
         try {
-
             List<RoomResponse> rooms = webClient.get()
                     .uri("/api/rooms/{hotelId}", data.hotelId())
                     .headers(headers -> headers.setBearerAuth(data.token()))
@@ -48,11 +48,15 @@ public class RoomController {
                     .block();
 
             model.addAttribute("rooms", rooms);
-
         } catch (WebClientResponseException e) {
+            ErrorResponse error = e.getResponseBodyAs(ErrorResponse.class);
 
-            model.addAttribute("error", new ErrorResponse(e.getResponseBodyAsString()));
+            model.addAttribute("error", error);
 
+            if (e.getStatusCode() == HttpStatus.UNAUTHORIZED) {
+                return "redirect:/login-page";
+            }
+            return "room";
         }
 
         return "room";

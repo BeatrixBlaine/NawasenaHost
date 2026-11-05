@@ -1,9 +1,10 @@
 package com.nawasenahost.customerservice.service;
 
 import com.nawasenahost.customerservice.client.BookingClient;
+import com.nawasenahost.customerservice.dto.BookingData;
 import com.nawasenahost.customerservice.dto.BookingRequest;
 import com.nawasenahost.customerservice.dto.BookingResponse;
-import com.nawasenahost.customerservice.dto.CustomerRequest;
+import com.nawasenahost.customerservice.dto.CustomerData;
 import com.nawasenahost.customerservice.entity.Customer;
 import com.nawasenahost.customerservice.exception.CustomerNotFoundException;
 import com.nawasenahost.customerservice.repository.CustomerRepository;
@@ -47,13 +48,13 @@ public class CustomerServiceImpl implements CustomerService {
     }
 
     @Override
-    public Customer save(CustomerRequest customerRequest) {
+    public Customer save(CustomerData customerData) {
 
         Customer tempCustomer = new Customer();
-        tempCustomer.setFirstName(customerRequest.getFirstName());
-        tempCustomer.setLastName(customerRequest.getLastName());
-        tempCustomer.setEmail(customerRequest.getEmail());
-        tempCustomer.setPhone(customerRequest.getPhone());
+        tempCustomer.setFirstName(customerData.getFirstName());
+        tempCustomer.setLastName(customerData.getLastName());
+        tempCustomer.setEmail(customerData.getEmail());
+        tempCustomer.setPhone(customerData.getPhone());
 
         return customerRepository.save(tempCustomer);
     }
@@ -65,32 +66,31 @@ public class CustomerServiceImpl implements CustomerService {
     }
 
     @Override
-    public Customer update(int id, CustomerRequest customerRequest) {
+    public Customer update(int id, CustomerData customerData) {
 
         Customer tempCustomer = findById(id);
-        tempCustomer.setFirstName(customerRequest.getFirstName());
-        tempCustomer.setLastName(customerRequest.getLastName());
-        tempCustomer.setEmail(customerRequest.getEmail());
-        tempCustomer.setPhone(customerRequest.getPhone());
+        tempCustomer.setFirstName(customerData.getFirstName());
+        tempCustomer.setLastName(customerData.getLastName());
+        tempCustomer.setEmail(customerData.getEmail());
+        tempCustomer.setPhone(customerData.getPhone());
 
         return customerRepository.save(tempCustomer);
     }
 
     @Override
-    public BookingResponse createNewBooking(CustomerRequest customerRequest,
-                                            BookingRequest bookingRequest) {
+    public BookingResponse createNewBooking(BookingRequest bookingRequest) {
 
         Customer tempCustomer = new Customer();
-        tempCustomer.setFirstName(customerRequest.getFirstName());
-        tempCustomer.setLastName(customerRequest.getLastName());
-        tempCustomer.setEmail(customerRequest.getEmail());
-        tempCustomer.setPhone(customerRequest.getPhone());
+        tempCustomer.setFirstName(bookingRequest.getCustomerData().getFirstName());
+        tempCustomer.setLastName(bookingRequest.getCustomerData().getLastName());
+        tempCustomer.setEmail(bookingRequest.getCustomerData().getEmail());
+        tempCustomer.setPhone(bookingRequest.getCustomerData().getPhone());
 
         Customer savedCustomer = customerRepository.save(tempCustomer);
 
-        bookingRequest.setCustomerId(savedCustomer.getCustomerId());
+        bookingRequest.getBookingData().setCustomerId(savedCustomer.getCustomerId());
 
-        BookingResponse createdBooking = bookingClient.addBooking(bookingRequest);
+        BookingResponse createdBooking = bookingClient.addBooking(bookingRequest.getBookingData());
 
         return createdBooking;
     }

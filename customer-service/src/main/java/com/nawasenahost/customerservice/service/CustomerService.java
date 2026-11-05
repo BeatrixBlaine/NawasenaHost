@@ -1,8 +1,9 @@
 package com.nawasenahost.customerservice.service;
 
+import com.nawasenahost.customerservice.dto.BookingData;
 import com.nawasenahost.customerservice.dto.BookingRequest;
 import com.nawasenahost.customerservice.dto.BookingResponse;
-import com.nawasenahost.customerservice.dto.CustomerRequest;
+import com.nawasenahost.customerservice.dto.CustomerData;
 import com.nawasenahost.customerservice.entity.Customer;
 import jakarta.validation.Valid;
 
@@ -12,10 +13,9 @@ public interface CustomerService {
 
     List<Customer> findAll();
     Customer findById(int id);
-    Customer save(CustomerRequest customerRequest);
+    Customer save(CustomerData customerData);
     void deleteById(int id);
-    Customer update(int id, CustomerRequest customerRequest);
+    Customer update(int id, CustomerData customerData);
 
-    BookingResponse createNewBooking(@Valid CustomerRequest customerRequest,
-                                     @Valid BookingRequest bookingRequest);
+    BookingResponse createNewBooking(@Valid BookingRequest bookingRequest);
 }

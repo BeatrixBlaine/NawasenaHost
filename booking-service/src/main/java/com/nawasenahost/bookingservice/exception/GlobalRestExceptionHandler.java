@@ -10,31 +10,46 @@ public class GlobalRestExceptionHandler {
 
     @ExceptionHandler(RoomNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    public String handleRoomNotFound(RoomNotFoundException e) {
-        return e.getMessage();
+    public ErrorResponse handleRoomNotFound(RoomNotFoundException e) {
+        return new ErrorResponse(
+                HttpStatus.NOT_FOUND.value(),
+                e.getMessage(),
+                System.currentTimeMillis());
     }
 
     @ExceptionHandler(RoomNotAvailableException.class)
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public String handleRoomNotAvailable(RoomNotAvailableException e) {
-        return e.getMessage();
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public ErrorResponse handleRoomNotAvailable(RoomNotAvailableException e) {
+        return new ErrorResponse(
+                HttpStatus.CONFLICT.value(),
+                e.getMessage(),
+                System.currentTimeMillis());
     }
 
     @ExceptionHandler(HotelNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    public String handleHotelNotFound(HotelNotFoundException e) {
-        return e.getMessage();
+    public ErrorResponse handleHotelNotFound(HotelNotFoundException e) {
+        return new ErrorResponse(
+                HttpStatus.NOT_FOUND.value(),
+                e.getMessage(),
+                System.currentTimeMillis());
     }
 
     @ExceptionHandler(CustomerNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    public String handleUserNotFound(CustomerNotFoundException e) {
-        return e.getMessage();
+    public ErrorResponse handleUserNotFound(CustomerNotFoundException e) {
+        return new ErrorResponse(
+                HttpStatus.NOT_FOUND.value(),
+                e.getMessage(),
+                System.currentTimeMillis());
     }
 
     @ExceptionHandler(BookingCannotBeCancelledException.class)
     @ResponseStatus(HttpStatus.CONFLICT)
-    public String handleBookingCannotBeCancelled(BookingCannotBeCancelledException e) {
-        return e.getMessage();
+    public ErrorResponse handleBookingCannotBeCancelled(BookingCannotBeCancelledException e) {
+        return new ErrorResponse(
+                HttpStatus.CONFLICT.value(),
+                e.getMessage(),
+                System.currentTimeMillis());
     }
 }

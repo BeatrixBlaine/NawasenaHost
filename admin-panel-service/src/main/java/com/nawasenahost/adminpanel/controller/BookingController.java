@@ -1,6 +1,5 @@
 package com.nawasenahost.adminpanel.controller;
 
-import com.nawasenahost.adminpanel.dto.BookingResponse;
 import com.nawasenahost.adminpanel.dto.ErrorResponse;
 import com.nawasenahost.adminpanel.dto.SessionData;
 import jakarta.servlet.http.HttpSession;
@@ -10,6 +9,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
+
 
 @Controller
 public class BookingController {
@@ -30,20 +30,22 @@ public class BookingController {
         );
     }
 
-    @PostMapping("/book")
+    @PostMapping("/createBook")
     public String createBook(Model model,
                              HttpSession session) {
 
         SessionData data = getSessionData(session);
 
         try {
-            BookingResponse
+            return null;
         } catch (WebClientResponseException e) {
+
+            ErrorResponse error = e.getResponseBodyAs(ErrorResponse.class);
+
+            model.addAttribute("error", error);
+
             if (e.getStatusCode() == HttpStatus.UNAUTHORIZED) {
-                model.addAttribute(
-                        "error",
-                        new ErrorResponse(e.getResponseBodyAsString())
-                );
+                return "redirect:/login-page";
             }
             return "book";
         }
