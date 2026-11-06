@@ -57,7 +57,7 @@ spring:
           customer-service:
             registration:
               client-id: customer-service
-              client-name: ${CUSTOMER_CLIENT_SECRET_BCRYPT}
+              client-secret: ${CUSTOMER_CLIENT_SECRET_BCRYPT}
               client-authentication-methods:
                 - client_secret_basic
               authorization-grant-types:
