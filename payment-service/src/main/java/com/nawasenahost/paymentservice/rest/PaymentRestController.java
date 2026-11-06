@@ -1,6 +1,7 @@
 package com.nawasenahost.paymentservice.rest;
 
 import com.nawasenahost.paymentservice.dto.PaymentRequest;
+import com.nawasenahost.paymentservice.dto.PaymentResponse;
 import com.nawasenahost.paymentservice.entity.Payment;
 import com.nawasenahost.paymentservice.entity.PaymentMethod;
 import com.nawasenahost.paymentservice.entity.PaymentSource;
@@ -55,7 +56,7 @@ public class PaymentRestController {
     }
 
     @PostMapping("/payments/create-payment")
-    public PaymentRequest createPayment(@RequestParam int bookingId) {
+    public PaymentResponse createPayment(@RequestParam int bookingId) {
         return paymentService.createPayment(bookingId);
     }
 

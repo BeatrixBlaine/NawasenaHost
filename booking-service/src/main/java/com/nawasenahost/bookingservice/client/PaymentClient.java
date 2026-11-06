@@ -1,5 +1,6 @@
 package com.nawasenahost.bookingservice.client;
 
+import com.nawasenahost.bookingservice.dto.PaymentResponse;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -9,7 +10,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 public interface PaymentClient {
 
     @PostMapping("/api/payments/create-payment")
-    void createPayment(
+    PaymentResponse createPayment(
             @RequestParam("bookingId") int bookingId
     );
 

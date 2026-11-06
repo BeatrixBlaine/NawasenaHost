@@ -1,6 +1,7 @@
 package com.nawasenahost.bookingservice.rest;
 
 import com.nawasenahost.bookingservice.dto.BookingRequest;
+import com.nawasenahost.bookingservice.dto.BookingResponse;
 import com.nawasenahost.bookingservice.entity.Booking;
 import com.nawasenahost.bookingservice.service.BookingService;
 import jakarta.validation.Valid;
@@ -29,7 +30,7 @@ public class BookingRestController {
     }
 
     @PostMapping("/bookings")
-    public Booking addBooking(@Valid @RequestBody BookingRequest bookingRequest) {
+    public BookingResponse addBooking(@Valid @RequestBody BookingRequest bookingRequest) {
         return bookingService.save(bookingRequest);
     }
 

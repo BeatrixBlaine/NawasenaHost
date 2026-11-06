@@ -2,6 +2,8 @@ package com.nawasenahost.bookingservice.service;
 
 import com.nawasenahost.bookingservice.client.*;
 import com.nawasenahost.bookingservice.dto.BookingRequest;
+import com.nawasenahost.bookingservice.dto.BookingResponse;
+import com.nawasenahost.bookingservice.dto.PaymentResponse;
 import com.nawasenahost.bookingservice.entity.Booking;
 import com.nawasenahost.bookingservice.entity.BookingStatus;
 import com.nawasenahost.bookingservice.exception.*;
@@ -107,7 +109,7 @@ public class BookingServiceImpl implements BookingService{
     }
 
     @Override
-    public Booking save(BookingRequest bookingRequest) {
+    public BookingResponse save(BookingRequest bookingRequest) {
 
         validateCustomer(bookingRequest.getCustomerId());
         validateDates(bookingRequest);
@@ -137,9 +139,17 @@ public class BookingServiceImpl implements BookingService{
 
         Booking savedBooking = bookingRepository.save(tempBooking);
 
-        paymentClient.createPayment(savedBooking.getBookingId());
+        PaymentResponse paymentResponse = paymentClient.createPayment(savedBooking.getBookingId());
 
-        return savedBooking;
+        BookingResponse bookingResponse = new BookingResponse(
+                savedBooking.getBookingId(),
+                savedBooking.getCustomerId(),
+                savedBooking.getHotelId(),
+                savedBooking.getRoomId(),
+                savedBooking.getStatus().toString(),
+                paymentResponse.getPaymentId());
+
+        return bookingResponse;
     }
 
     @Override

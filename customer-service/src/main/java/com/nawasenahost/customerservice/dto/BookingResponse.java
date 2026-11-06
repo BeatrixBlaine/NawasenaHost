@@ -7,6 +7,15 @@ public class BookingResponse {
     private int hotelId;
     private int roomId;
     private String status;
+    private int paymentId;
+
+    public int getPaymentId() {
+        return paymentId;
+    }
+
+    public void setPaymentId(int paymentId) {
+        this.paymentId = paymentId;
+    }
 
     public int getBookingId() {
         return bookingId;

@@ -4,6 +4,7 @@ import com.nawasenahost.paymentservice.client.BookingClient;
 import com.nawasenahost.paymentservice.client.RoomClient;
 import com.nawasenahost.paymentservice.dto.BookingResponse;
 import com.nawasenahost.paymentservice.dto.PaymentRequest;
+import com.nawasenahost.paymentservice.dto.PaymentResponse;
 import com.nawasenahost.paymentservice.dto.RoomResponse;
 import com.nawasenahost.paymentservice.entity.Payment;
 import com.nawasenahost.paymentservice.entity.PaymentMethod;
@@ -129,7 +130,7 @@ public class PaymentServiceImpl implements PaymentService{
     }
 
     @Override
-    public PaymentRequest createPayment(int bookingId) {
+    public PaymentResponse createPayment(int bookingId) {
 
         validateBooking(bookingId);
         BookingResponse bookingResponse = bookingClient.getBooking(bookingId);
@@ -152,9 +153,12 @@ public class PaymentServiceImpl implements PaymentService{
         paymentRequest.setProvider(null);
         paymentRequest.setCurrency(null);
         paymentRequest.setTransactionId(null);
-        save(paymentRequest);
+        Payment savedPayment = save(paymentRequest);
 
-        return paymentRequest;
+        PaymentResponse paymentResponse = new PaymentResponse();
+        paymentResponse.setPaymentId(savedPayment.getPaymentid());
+
+        return paymentResponse;
     }
 
     @Override
