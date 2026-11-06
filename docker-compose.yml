@@ -26,6 +26,7 @@ services:
       PAYMENT_CLIENT_SECRET_BCRYPT: ${PAYMENT_CLIENT_SECRET_BCRYPT}
       AVAILABILITY_CLIENT_SECRET_BCRYPT: ${AVAILABILITY_CLIENT_SECRET_BCRYPT}
       ROOM_CLIENT_SECRET_BCRYPT: ${ROOM_CLIENT_SECRET_BCRYPT}
+      CUSTOMER_CLIENT_SECRET_BCRYPT: ${CUSTOMER_CLIENT_SECRET_BCRYPT}
     networks:
       - nawasenahost-network
     depends_on:
@@ -76,7 +77,9 @@ services:
       SPRING_DATASOURCE_USERNAME: root
       SPRING_DATASOURCE_PASSWORD: ""
       AUTH_JWKS_URI: http://auth-service:8087/oauth2/jwks
+      SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_AUTH_SERVICE_TOKEN_URI: http://auth-service:8087/oauth2/token
       JWT_SECRET: ${JWT_SECRET}
+      CUSTOMER_CLIENT_SECRET: ${CUSTOMER_CLIENT_SECRET}
     networks:
       - nawasenahost-network
     depends_on:
@@ -94,7 +97,7 @@ services:
       SPRING_DATASOURCE_URL: jdbc:mysql://host.docker.internal:3308/nawasenahost_room
       SPRING_DATASOURCE_USERNAME: root
       SPRING_DATASOURCE_PASSWORD: ""
-      AUTH_JWKS_URI: http://auth-service:8087/oauth2/jwks
+      AUTH_JWKS_URI: http://auth-service:8087/oauth2/jwks 
       ROOM_CLIENT_SECRET: ${ROOM_CLIENT_SECRET}
       JWT_SECRET: ${JWT_SECRET}
       SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_AUTH_SERVICE_TOKEN_URI: http://auth-service:8087/oauth2/token

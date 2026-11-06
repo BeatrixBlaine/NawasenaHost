@@ -73,6 +73,13 @@ public class SecurityConfig {
                 .authorizeHttpRequests(configurer -> configurer
 
                         .requestMatchers(HttpMethod.GET, "/api/customers/{customerId}").hasAuthority("SCOPE_customer.read")
+                        .requestMatchers(
+                                "/my-ui.html",
+                                "/swagger-ui/**",
+                                "/swagger-ui.html",
+                                "/v3/api-docs/**",
+                                "/v3/api-docs",
+                                "/my-api-docs/**").permitAll()
 
                         .anyRequest().authenticated())
                 .oauth2ResourceServer(oauth2 -> oauth2

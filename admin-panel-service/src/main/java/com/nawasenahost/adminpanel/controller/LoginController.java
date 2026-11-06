@@ -82,12 +82,27 @@ public class LoginController {
 
         } catch (WebClientResponseException e) {
 
-            if (e.getStatusCode() == HttpStatus.UNAUTHORIZED) {
-                model.addAttribute(
-                        "error",
-                        new ErrorResponse(e.getResponseBodyAsString())
+            ErrorResponse error;
+
+            try {
+                error = e.getResponseBodyAs(ErrorResponse.class);
+            } catch (Exception ignored) {
+                error = null;
+            }
+
+            if (error == null) {
+                error = new ErrorResponse(
+                        e.getStatusCode().value(),
+                        "An unexpected error occurred.",
+                        System.currentTimeMillis()
                 );
             }
+
+            if (e.getStatusCode() == HttpStatus.UNAUTHORIZED) {
+                return "redirect:/login-page";
+            }
+
+            model.addAttribute("error", error);
 
             return "login";
 
