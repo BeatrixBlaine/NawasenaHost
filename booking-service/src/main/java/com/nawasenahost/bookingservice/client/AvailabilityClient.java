@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import java.time.LocalDate;
 
 @FeignClient(name = "availability-service")
-public interface AvailabilityClient {
+public interface  AvailabilityClient {
 
     @GetMapping("/api/availabilities/check")
     boolean checkAvailability(

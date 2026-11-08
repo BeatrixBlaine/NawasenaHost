@@ -24,13 +24,14 @@ public class JwtServiceImpl implements JwtService{
     }
 
     @Override
-    public String generateToken(String username) {
+    public String generateToken(String username, String role) {
 
         Date now = new Date();
         Date expiration = new Date(now.getTime() + expirationTime);
 
         return Jwts.builder()
                 .subject(username)
+                .claim("role", role)
                 .issuedAt(now)
                 .expiration(expiration)
                 .signWith(secretKey, Jwts.SIG.HS256)

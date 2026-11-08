@@ -1,10 +1,13 @@
 package com.nawasenahost.adminpanel.controller;
 
-import com.nawasenahost.adminpanel.dto.ErrorResponse;
+import com.nawasenahost.adminpanel.exception.ErrorResponse;
 import com.nawasenahost.adminpanel.dto.LoginRequest;
 import com.nawasenahost.adminpanel.dto.LoginResponse;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.security.oauth2.jwt.JwtException;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -24,9 +27,12 @@ import java.util.List;
 public class LoginController {
 
     private final WebClient webClient;
+    private final JwtDecoder jwtDecoder;
 
-    public LoginController(WebClient webClient) {
+    public LoginController(WebClient webClient,
+                           JwtDecoder jwtDecoder) {
         this.webClient = webClient;
+        this.jwtDecoder = jwtDecoder;
     }
 
     @GetMapping("/")
@@ -57,19 +63,21 @@ public class LoginController {
                      .block();
 
              session.setAttribute("accessToken", response.getToken());
-             session.setAttribute("role", response.getRole());
              session.setAttribute("authId", response.getAuthId());
              session.setAttribute("hotelId", response.getHotelId());
              session.setAttribute("tokenType", response.getTokenType());
 
-             var authentication =
+            Jwt jwt = jwtDecoder.decode(response.getToken());
+
+            String authenticatedUsername = jwt.getSubject();
+            String role = jwt.getClaimAsString("role");
+
+            var authentication =
                     new UsernamePasswordAuthenticationToken(
-                            username,
+                            authenticatedUsername,
                             null,
                             List.of(
-                                    new SimpleGrantedAuthority(
-                                            "ROLE_" + response.getRole()
-                                    )
+                                    new SimpleGrantedAuthority("ROLE_" + role)
                             )
                     );
 
@@ -77,6 +85,7 @@ public class LoginController {
              context.setAuthentication(authentication);
              SecurityContextHolder.setContext(context);
              session.setAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY, context);
+             session.setAttribute("role", role);
 
              return "redirect:/dashboard";
 
@@ -106,6 +115,13 @@ public class LoginController {
 
             return "login";
 
+        } catch (JwtException e) {
+            model.addAttribute(
+                    "error",
+                    "Invalid or expired authentication token. Please log in again."
+            );
+
+            return "login";
         }
 
     }

@@ -1,14 +1,14 @@
 package com.nawasenahost.roomservice.exception;
 
-public class RoomErrorResponse {
+public class ErrorResponse {
 
     private int status;
     private String message;
     private long timeStamp;
 
-    public RoomErrorResponse(){}
+    public ErrorResponse(){}
 
-    public RoomErrorResponse(int status, String message, long timeStamp) {
+    public ErrorResponse(int status, String message, long timeStamp) {
         this.status = status;
         this.message = message;
         this.timeStamp = timeStamp;

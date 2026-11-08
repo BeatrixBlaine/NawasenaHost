@@ -106,10 +106,9 @@ public class AuthServiceImpl implements AuthService{
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
         LoginResponse response = new LoginResponse();
-        response.setToken(jwtService.generateToken(authenticatedUser.getName()));
+        response.setToken(jwtService.generateToken(authenticatedUser.getName(), theAuth.getRole().name()));
         response.setAuthId(theAuth.getAuthId());
         response.setHotelId(theAuth.getHotelId());
-        response.setRole(theAuth.getRole().name());
         response.setTokenType("Bearer");
 
         return response;

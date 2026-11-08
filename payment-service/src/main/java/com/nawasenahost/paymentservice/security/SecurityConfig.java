@@ -74,7 +74,6 @@ public class SecurityConfig {
 
                         .requestMatchers(HttpMethod.POST,"/api/payments/create-payment").hasAuthority("SCOPE_payment.create")
                         .requestMatchers(HttpMethod.PUT,"/api/payments/cancel-payment-by-booking-id").hasAuthority("SCOPE_payment.create")
-                        .requestMatchers(HttpMethod.POST,"/api/payments/confirm-payment").hasAuthority("SCOPE_payment.create")
 
                         .anyRequest().authenticated())
                 .oauth2ResourceServer(configurer -> configurer

@@ -1,6 +1,6 @@
 package com.nawasenahost.adminpanel.controller;
 
-import com.nawasenahost.adminpanel.dto.ErrorResponse;
+import com.nawasenahost.adminpanel.exception.ErrorResponse;
 import com.nawasenahost.adminpanel.dto.RoomResponse;
 import com.nawasenahost.adminpanel.dto.SessionData;
 import jakarta.servlet.http.HttpSession;

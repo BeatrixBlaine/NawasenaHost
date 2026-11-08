@@ -1,6 +1,7 @@
 package com.nawasenahost.bookingservice.exception;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -37,7 +38,7 @@ public class GlobalRestExceptionHandler {
 
     @ExceptionHandler(CustomerNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    public ErrorResponse handleUserNotFound(CustomerNotFoundException e) {
+    public ErrorResponse handleCustomerNotFound(CustomerNotFoundException e) {
         return new ErrorResponse(
                 HttpStatus.NOT_FOUND.value(),
                 e.getMessage(),
@@ -52,4 +53,25 @@ public class GlobalRestExceptionHandler {
                 e.getMessage(),
                 System.currentTimeMillis());
     }
+
+    @ExceptionHandler(BookingNotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ErrorResponse handleBookingNotFound(BookingNotFoundException e) {
+        return new ErrorResponse(
+                HttpStatus.NOT_FOUND.value(),
+                e.getMessage(),
+                System.currentTimeMillis()
+        );
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ErrorResponse handleMethodArgumentNotValid(MethodArgumentNotValidException e) {
+        return new ErrorResponse(
+                HttpStatus.BAD_REQUEST.value(),
+                e.getBindingResult().getFieldError().getDefaultMessage(),
+                System.currentTimeMillis()
+        );
+    }
+
 }

@@ -1,10 +1,16 @@
-package com.nawasenahost.bookingservice.exception;
+package com.nawasenahost.adminpanel.exception;
 
-public class BookingErrorResponse {
+public class ErrorResponse {
 
     private int status;
     private String message;
     private long timeStamp;
+
+    public ErrorResponse(int status, String message, long timeStamp) {
+        this.status = status;
+        this.message = message;
+        this.timeStamp = timeStamp;
+    }
 
     public int getStatus() {
         return status;

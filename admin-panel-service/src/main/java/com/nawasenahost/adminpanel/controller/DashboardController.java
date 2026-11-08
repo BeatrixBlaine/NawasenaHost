@@ -1,9 +1,7 @@
 package com.nawasenahost.adminpanel.controller;
 
-import com.nawasenahost.adminpanel.dto.RoomResponse;
 import com.nawasenahost.adminpanel.dto.SessionData;
 import jakarta.servlet.http.HttpSession;
-import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
