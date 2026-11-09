@@ -3,6 +3,7 @@ package com.nawasenahost.availabilityservice.service;
 import com.nawasenahost.availabilityservice.entity.RoomInventory;
 import com.nawasenahost.availabilityservice.repository.RoomInventoryRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -34,6 +35,7 @@ public class RoomInventoryServiceImpl implements RoomInventoryService{
     }
 
     @Override
+    @Transactional
     public void initializeInventory(int hotelId, int totalRooms) {
 
         if (totalRooms <= 0) {
