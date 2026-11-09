@@ -74,6 +74,13 @@ public class SecurityConfig {
 
                         .requestMatchers(HttpMethod.PUT,"/api/bookings/{bookingId}/confirm-booking").hasAuthority("SCOPE_booking.create")
                         .requestMatchers(HttpMethod.POST,"/api/bookings").hasAuthority("SCOPE_booking.create")
+                        .requestMatchers(
+                                "/my-ui.html",
+                                "/swagger-ui/**",
+                                "/swagger-ui.html",
+                                "/v3/api-docs/**",
+                                "/v3/api-docs",
+                                "/my-api-docs/**").permitAll()
 
                         .anyRequest().authenticated())
                 .oauth2ResourceServer(configurer -> configurer

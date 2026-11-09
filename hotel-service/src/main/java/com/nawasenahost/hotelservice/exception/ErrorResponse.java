@@ -1,14 +1,14 @@
 package com.nawasenahost.hotelservice.exception;
 
-public class HotelErrorResponse {
+public class ErrorResponse {
 
     private int status;
     private String message;
     private long timeStamp;
 
-    public HotelErrorResponse() {}
+    public ErrorResponse() {}
 
-    public HotelErrorResponse(int status, String message, long timeStamp) {
+    public ErrorResponse(int status, String message, long timeStamp) {
         this.status = status;
         this.message = message;
         this.timeStamp = timeStamp;

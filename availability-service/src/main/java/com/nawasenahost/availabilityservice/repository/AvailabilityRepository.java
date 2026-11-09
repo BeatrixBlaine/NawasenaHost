@@ -13,4 +13,5 @@ public interface AvailabilityRepository extends JpaRepository<Availability, Inte
             List<AvailabilityStatus> booked,
             LocalDate checkInDate,
             LocalDate checkOutDate);
+
 }

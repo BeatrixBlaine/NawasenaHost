@@ -1,5 +1,6 @@
 package com.nawasenahost.roomservice.service;
 
+import com.nawasenahost.roomservice.client.AvailabilityClient;
 import com.nawasenahost.roomservice.client.HotelClient;
 import com.nawasenahost.roomservice.dto.RoomRequest;
 import com.nawasenahost.roomservice.entity.Room;
@@ -20,14 +21,17 @@ public class RoomServiceImpl implements RoomService{
     private final RoomRepository roomRepository;
     private final RestClient restClient;
     private final HotelClient hotelClient;
+    private final AvailabilityClient availabilityClient;
 
     @Autowired
     public RoomServiceImpl(RoomRepository roomRepository,
                            RestClient restClient,
-                           HotelClient hotelClient) {
+                           HotelClient hotelClient,
+                           AvailabilityClient availabilityClient) {
         this.roomRepository = roomRepository;
         this.restClient = restClient;
         this.hotelClient = hotelClient;
+        this.availabilityClient = availabilityClient;
     }
 
     private void validateHotel(int hotelId) {
@@ -99,5 +103,24 @@ public class RoomServiceImpl implements RoomService{
         tempRoom.setDescription(roomRequest.getDescription());
 
         return roomRepository.save(tempRoom);
+    }
+
+    @Override
+    public long getTotalRoomsByHotelId(int hotelId) {
+        return roomRepository.countByHotelId(hotelId);
+    }
+
+    @Override
+    public List<Room> initializeRoomInventory(int hotelId, List<RoomRequest> requests) {
+
+        for(RoomRequest request : requests) {
+            save(request);
+        }
+
+        int totalRooms = requests.size();
+
+        availabilityClient.initializeInventory(hotelId, totalRooms);
+
+        return List.of();
     }
 }

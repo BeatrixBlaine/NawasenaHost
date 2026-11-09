@@ -12,5 +12,7 @@ public interface RoomService {
     Room save(RoomRequest roomRequest);
     void deleteById(int id);
     Room update(int id, RoomRequest roomRequest);
+    long getTotalRoomsByHotelId(int hotelId);
+    List<Room> initializeRoomInventory(int hotelId, List<RoomRequest> requests);
 
 }

@@ -74,6 +74,13 @@ public class SecurityConfig {
 
                         .requestMatchers(HttpMethod.GET,"/api/availabilities/check").hasAuthority("SCOPE_availability.read")
                         .requestMatchers(HttpMethod.POST,"/api/availabilities/book").hasAuthority("SCOPE_availability.create")
+                        .requestMatchers(
+                                "/my-ui.html",
+                                "/swagger-ui/**",
+                                "/swagger-ui.html",
+                                "/v3/api-docs/**",
+                                "/v3/api-docs",
+                                "/my-api-docs/**").permitAll()
 
                         .anyRequest().authenticated())
                 .oauth2ResourceServer(configurer -> configurer

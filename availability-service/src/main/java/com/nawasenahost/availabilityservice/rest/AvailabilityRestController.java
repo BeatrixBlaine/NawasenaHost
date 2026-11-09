@@ -68,4 +68,6 @@ public class AvailabilityRestController {
 
         return availabilityService.createBooking(roomId, checkInDate, checkOutDate);
     }
+
+
 }

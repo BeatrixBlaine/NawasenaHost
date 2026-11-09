@@ -44,4 +44,15 @@ public class RoomRestController {
         roomService.deleteById(roomId);
         return "Room deleted with id: " + roomId;
     }
+
+    @GetMapping("/rooms/total-rooms/{hotelId}")
+    public long getTotalRoomsByHotelId(@PathVariable int hotelId) {
+        return roomService.getTotalRoomsByHotelId(hotelId);
+    }
+
+    @PostMapping("/rooms/batch")
+    public List<Room> addBatchRoom(@RequestParam int hotelId,
+                                   @RequestBody List<RoomRequest> requests) {
+        return roomService.initializeRoomInventory(hotelId, requests);
+    }
 }

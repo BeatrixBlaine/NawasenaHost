@@ -75,6 +75,14 @@ public class SecurityConfig {
                 .authorizeHttpRequests(configurer ->
                         configurer
                                 .requestMatchers(HttpMethod.GET,"/api/hotels/{hotelId}").hasAuthority("SCOPE_hotel.read")
+                                .requestMatchers(
+                                        "/my-ui.html",
+                                        "/swagger-ui/**",
+                                        "/swagger-ui.html",
+                                        "/v3/api-docs/**",
+                                        "/v3/api-docs",
+                                        "/my-api-docs/**").permitAll()
+
                                 .anyRequest().authenticated()
                 )
                 .exceptionHandling(exceptions ->

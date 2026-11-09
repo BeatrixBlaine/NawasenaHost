@@ -67,13 +67,13 @@ public class LoginController {
              session.setAttribute("hotelId", response.getHotelId());
              session.setAttribute("tokenType", response.getTokenType());
 
-            Jwt jwt = jwtDecoder.decode(response.getToken());
+             Jwt jwt = jwtDecoder.decode(response.getToken());
 
-            String authenticatedUsername = jwt.getSubject();
-            String role = jwt.getClaimAsString("role");
+             String authenticatedUsername = jwt.getSubject();
+             String role = jwt.getClaimAsString("role");
 
-            var authentication =
-                    new UsernamePasswordAuthenticationToken(
+             var authentication =
+                     new UsernamePasswordAuthenticationToken(
                             authenticatedUsername,
                             null,
                             List.of(

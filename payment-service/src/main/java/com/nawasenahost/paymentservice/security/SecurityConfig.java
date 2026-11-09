@@ -74,6 +74,13 @@ public class SecurityConfig {
 
                         .requestMatchers(HttpMethod.POST,"/api/payments/create-payment").hasAuthority("SCOPE_payment.create")
                         .requestMatchers(HttpMethod.PUT,"/api/payments/cancel-payment-by-booking-id").hasAuthority("SCOPE_payment.create")
+                        .requestMatchers(
+                                "/my-ui.html",
+                                "/swagger-ui/**",
+                                "/swagger-ui.html",
+                                "/v3/api-docs/**",
+                                "/v3/api-docs",
+                                "/my-api-docs/**").permitAll()
 
                         .anyRequest().authenticated())
                 .oauth2ResourceServer(configurer -> configurer

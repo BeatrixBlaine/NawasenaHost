@@ -17,6 +17,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 
+import java.time.LocalDate;
+
 
 @Controller
 public class BookingController {
@@ -40,13 +42,17 @@ public class BookingController {
     @GetMapping("/booking-page")
     public String bookingPage(HttpSession session,
                               Model model,
-                              @RequestParam("roomId") int roomId) {
+                              @RequestParam("roomId") int roomId,
+                              @RequestParam("checkInDate") LocalDate checkInDate,
+                              @RequestParam("checkOutDate") LocalDate checkOutDate) {
 
         SessionData data = getSessionData(session);
 
         model.addAttribute("bookingRequest", new BookingRequest());
         model.addAttribute("hotelId", data.hotelId());
         model.addAttribute("roomId", roomId);
+        model.addAttribute("checkInDate", checkInDate);
+        model.addAttribute("checkOutDate", checkOutDate);
 
         return "book";
     }
