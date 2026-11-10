@@ -10,10 +10,8 @@ import com.nawasenahost.roomservice.repository.RoomRepository;
 import feign.FeignException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestClient;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -113,24 +111,16 @@ public class RoomServiceImpl implements RoomService{
     }
 
     @Override
-    @Transactional
     public List<Room> initializeRoomInventory(int hotelId, List<RoomRequest> requests) {
 
-        if (requests == null || requests.isEmpty()) {
-            throw new IllegalArgumentException("Room list must not be empty");
+        for(RoomRequest request : requests) {
+            save(request);
         }
 
-        List<Room> savedRooms = new ArrayList<>();
-
-        for (RoomRequest request : requests) {
-            request.setHotelId(hotelId);
-            savedRooms.add(save(request));
-        }
-
-        int totalRooms = Math.toIntExact(roomRepository.countByHotelId(hotelId));
+        int totalRooms = requests.size();
 
         availabilityClient.initializeInventory(hotelId, totalRooms);
 
-        return savedRooms;
+        return List.of();
     }
 }
