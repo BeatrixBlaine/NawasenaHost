@@ -1,45 +1,28 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NawasenaHost - Login</title>
-</head>
-<body>
+<head th:replace="~{fragments/layout :: head('Log in')}"></head>
+<body class="flex min-h-screen items-center justify-center px-6">
 
-<h2>Admin Panel Login</h2>
+<main class="w-full max-w-sm">
+    <h1 class="mb-1 text-xl font-semibold tracking-tight">NawasenaHost</h1>
+    <p class="mb-8 text-sm text-stone-500">Sign in to manage your hotel.</p>
 
-<p th:if="${error}" th:text="${error}" style="color: red;"></p>
+    <p th:if="${param.logout}" class="mb-4 rounded-md border border-stone-200 bg-white px-4 py-3 text-sm text-stone-600">You have been logged out.</p>
+    <p th:if="${param.expired}" class="mb-4 rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">Your session expired, please log in again.</p>
+    <p th:if="${error}" th:text="${error}" class="mb-4 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800"></p>
 
-<form th:action="@{/login}" method="post">
-
-    <div>
-        <label for="username">Username</label>
-        <input
-                type="text"
-                id="username"
-                name="username"
-                required
-        >
-    </div>
-
-    <br>
-
-    <div>
-        <label for="password">Password</label>
-        <input
-                type="password"
-                id="password"
-                name="password"
-                required
-        >
-    </div>
-
-    <br>
-
-    <button type="submit">Login</button>
-
-</form>
+    <form th:action="@{/login}" method="post" class="card space-y-4 p-6">
+        <div>
+            <label for="username" class="label">Username</label>
+            <input id="username" name="username" type="text" required autofocus autocomplete="username" class="input">
+        </div>
+        <div>
+            <label for="password" class="label">Password</label>
+            <input id="password" name="password" type="password" required autocomplete="current-password" class="input">
+        </div>
+        <button type="submit" class="btn w-full">Sign in</button>
+    </form>
+</main>
 
 </body>
 </html>

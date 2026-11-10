@@ -8,9 +8,18 @@ import java.time.LocalDate;
 
 public class BookingResponse {
 
+    private int hotelId;
     private int roomId;
     private LocalDate checkInDate;
     private LocalDate checkOutDate;
+
+    public int getHotelId() {
+        return hotelId;
+    }
+
+    public void setHotelId(int hotelId) {
+        this.hotelId = hotelId;
+    }
 
     public int getRoomId() {
         return roomId;

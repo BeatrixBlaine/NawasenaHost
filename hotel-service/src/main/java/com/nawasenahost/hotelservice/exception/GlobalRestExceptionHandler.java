@@ -1,6 +1,7 @@
 package com.nawasenahost.hotelservice.exception;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -28,6 +29,15 @@ public class GlobalRestExceptionHandler {
                 e.getBindingResult().getFieldError().getDefaultMessage(),
                 System.currentTimeMillis()
         );
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    public ErrorResponse handleAccessDenied(AccessDeniedException e) {
+        return new ErrorResponse(
+                HttpStatus.FORBIDDEN.value(),
+                e.getMessage(),
+                System.currentTimeMillis());
     }
 
 }

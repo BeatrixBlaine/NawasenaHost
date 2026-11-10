@@ -98,15 +98,11 @@ public class AuthServiceImpl implements AuthService{
                         loginRequest.getPassword()
                 ));
 
-        System.out.println(authenticatedUser.getAuthorities());
-        System.out.println(authenticatedUser.getCredentials());
-        System.out.println(authenticatedUser.getDetails());
-
         Auth theAuth = authRepository.findByUsername(authenticatedUser.getName())
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
         LoginResponse response = new LoginResponse();
-        response.setToken(jwtService.generateToken(authenticatedUser.getName(), theAuth.getRole().name()));
+        response.setToken(jwtService.generateToken(authenticatedUser.getName(), theAuth.getRole().name(), theAuth.getHotelId()));
         response.setAuthId(theAuth.getAuthId());
         response.setHotelId(theAuth.getHotelId());
         response.setTokenType("Bearer");
@@ -120,9 +116,9 @@ public class AuthServiceImpl implements AuthService{
 
         Auth tempAuth = findById(id);
 
-        if (currentManager.getRole() != AuthRole.MANAGER) {
+        if (tempAuth.getAuthId().equals(currentManager.getAuthId())) {
             throw new AccessDeniedException(
-                    "Managers can only create ADMIN accounts"
+                    "You cannot delete your own account"
             );
         }
 

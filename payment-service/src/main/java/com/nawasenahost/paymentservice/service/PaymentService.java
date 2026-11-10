@@ -13,6 +13,7 @@ public interface PaymentService {
 
     List<Payment> findAll();
     Payment findById(int id);
+    Payment findByBookingId(int bookingId);
     void deleteById(int id);
     Payment update(int paymentId, PaymentRequest paymentRequest);
     Payment save(PaymentRequest paymentRequest);

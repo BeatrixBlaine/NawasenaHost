@@ -26,6 +26,11 @@ public class PaymentRestController {
         return paymentService.findAll();
     }
 
+    @GetMapping("/payments/booking/{bookingId}")
+    public Payment getPaymentByBookingId(@PathVariable int bookingId) {
+        return paymentService.findByBookingId(bookingId);
+    }
+
     @GetMapping("/payments/{paymentId}")
     public Payment getPayment(@PathVariable int paymentId) {
         return paymentService.findById(paymentId);

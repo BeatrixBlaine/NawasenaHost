@@ -24,7 +24,7 @@ public class JwtServiceImpl implements JwtService{
     }
 
     @Override
-    public String generateToken(String username, String role) {
+    public String generateToken(String username, String role, int hotelId) {
 
         Date now = new Date();
         Date expiration = new Date(now.getTime() + expirationTime);
@@ -32,6 +32,7 @@ public class JwtServiceImpl implements JwtService{
         return Jwts.builder()
                 .subject(username)
                 .claim("role", role)
+                .claim("hotelId", hotelId)
                 .issuedAt(now)
                 .expiration(expiration)
                 .signWith(secretKey, Jwts.SIG.HS256)

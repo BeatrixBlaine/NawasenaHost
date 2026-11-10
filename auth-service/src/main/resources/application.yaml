@@ -53,6 +53,7 @@ spring:
                 - client_credentials
               scopes:
                 - hotel.read
+                - inventory.write
 
           customer-service:
             registration:

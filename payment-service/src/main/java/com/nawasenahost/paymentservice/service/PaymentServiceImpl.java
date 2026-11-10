@@ -11,8 +11,10 @@ import com.nawasenahost.paymentservice.entity.PaymentMethod;
 import com.nawasenahost.paymentservice.entity.PaymentSource;
 import com.nawasenahost.paymentservice.entity.PaymentStatus;
 import com.nawasenahost.paymentservice.exception.BookingNotFoundException;
+import com.nawasenahost.paymentservice.exception.PaymentConflictException;
 import com.nawasenahost.paymentservice.exception.PaymentNotFoundException;
 import com.nawasenahost.paymentservice.repository.PaymentRepository;
+import com.nawasenahost.paymentservice.security.TenantGuard;
 import feign.FeignException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -29,19 +31,27 @@ public class PaymentServiceImpl implements PaymentService{
     private final PaymentRepository paymentRepository;
     private final BookingClient bookingClient;
     private final RoomClient roomClient;
+    private final TenantGuard tenantGuard;
 
     @Autowired
     public PaymentServiceImpl(PaymentRepository paymentRepository,
                               BookingClient bookingClient,
-                              RoomClient roomClient) {
+                              RoomClient roomClient,
+                              TenantGuard tenantGuard) {
         this.paymentRepository = paymentRepository;
         this.bookingClient = bookingClient;
         this.roomClient = roomClient;
+        this.tenantGuard = tenantGuard;
     }
 
-    public void validateBooking(int bookingId) {
+    // checks if booking exist and belongs to the hotel of the current user
+    public BookingResponse validateBooking(int bookingId) {
         try {
-            bookingClient.getBooking(bookingId);
+            BookingResponse bookingResponse = bookingClient.getBooking(bookingId);
+
+            tenantGuard.assertHotel(bookingResponse.getHotelId());
+
+            return bookingResponse;
         } catch (FeignException.NotFound e) {
             throw new BookingNotFoundException("Booking with Id: " + bookingId + " not found");
         }
@@ -63,6 +73,22 @@ public class PaymentServiceImpl implements PaymentService{
             thePayment = tempPayment.get();
         } else {
             throw new PaymentNotFoundException("Payment with Id: " + id + " not found");
+        }
+
+        validateBooking(thePayment.getBookingId());
+
+        return thePayment;
+    }
+
+    @Override
+    public Payment findByBookingId(int bookingId) {
+
+        validateBooking(bookingId);
+
+        Payment thePayment = paymentRepository.findByBookingId(bookingId);
+
+        if (thePayment == null) {
+            throw new PaymentNotFoundException("Payment for booking with Id: " + bookingId + " not found");
         }
 
         return thePayment;
@@ -114,7 +140,19 @@ public class PaymentServiceImpl implements PaymentService{
     @Override
     public Payment confirmPayment(int paymentId, PaymentMethod paymentMethod, PaymentSource paymentSource) {
 
+        // findById already checks the hotel of the booking
         Payment confirmedPayment = findById(paymentId);
+
+        if (confirmedPayment.getPaymentStatus() != PaymentStatus.PENDING) {
+            throw new PaymentConflictException("Only pending payment can be confirmed");
+        }
+
+        // confirm the booking first, so a failed reservation never leaves a SUCCESS payment behind
+        try {
+            bookingClient.confirmBooking(confirmedPayment.getBookingId());
+        } catch (FeignException.Conflict e) {
+            throw new PaymentConflictException("Booking could not be confirmed, the room is no longer available or the booking is not pending");
+        }
 
         confirmedPayment.setCurrency("IDR");
         confirmedPayment.setPaymentMethod(paymentMethod);
@@ -123,17 +161,13 @@ public class PaymentServiceImpl implements PaymentService{
         confirmedPayment.setPaymentStatus(PaymentStatus.SUCCESS);
         confirmedPayment.setPaidAt(LocalDateTime.now());
 
-        Payment savedPayment = paymentRepository.save(confirmedPayment);
-        bookingClient.confirmBooking(confirmedPayment.getBookingId());
-
-        return savedPayment;
+        return paymentRepository.save(confirmedPayment);
     }
 
     @Override
     public PaymentResponse createPayment(int bookingId) {
 
-        validateBooking(bookingId);
-        BookingResponse bookingResponse = bookingClient.getBooking(bookingId);
+        BookingResponse bookingResponse = validateBooking(bookingId);
         RoomResponse roomResponse = roomClient.getRoom(bookingResponse.getRoomId());
 
         // Calculate price
@@ -165,6 +199,10 @@ public class PaymentServiceImpl implements PaymentService{
     public Payment cancelPaymentByBookingId(int bookingId) {
 
         Payment cancelledPayment = paymentRepository.findByBookingId(bookingId);
+
+        if (cancelledPayment == null) {
+            throw new PaymentNotFoundException("Payment for booking with Id: " + bookingId + " not found");
+        }
 
         cancelledPayment.setUpdatedAt(LocalDateTime.now());
         cancelledPayment.setPaymentStatus(PaymentStatus.CANCELLED);

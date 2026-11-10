@@ -7,7 +7,9 @@ import com.nawasenahost.bookingservice.dto.PaymentResponse;
 import com.nawasenahost.bookingservice.entity.Booking;
 import com.nawasenahost.bookingservice.entity.BookingStatus;
 import com.nawasenahost.bookingservice.exception.*;
+import com.nawasenahost.bookingservice.dto.RoomResponse;
 import com.nawasenahost.bookingservice.repository.BookingRepository;
+import com.nawasenahost.bookingservice.security.TenantGuard;
 import feign.FeignException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -25,6 +27,7 @@ public class BookingServiceImpl implements BookingService{
     private final AvailabilityClient availabilityClient;
     private final PaymentClient paymentClient;
     private final CustomerClient customerClient;
+    private final TenantGuard tenantGuard;
 
     @Autowired
     public BookingServiceImpl(BookingRepository bookingRepository,
@@ -32,13 +35,15 @@ public class BookingServiceImpl implements BookingService{
                               RoomClient roomClient,
                               AvailabilityClient availabilityClient,
                               PaymentClient paymentClient,
-                              CustomerClient customerClient) {
+                              CustomerClient customerClient,
+                              TenantGuard tenantGuard) {
         this.bookingRepository = bookingRepository;
         this.hotelClient = hotelClient;
         this.roomClient = roomClient;
         this.availabilityClient = availabilityClient;
         this.paymentClient = paymentClient;
         this.customerClient = customerClient;
+        this.tenantGuard = tenantGuard;
     }
 
     // checks if customer exist
@@ -71,10 +76,16 @@ public class BookingServiceImpl implements BookingService{
         }
     }
 
-    // checks if room exist
-    public void validateRoom(int roomId) {
+    // checks if room exist and belongs to the hotel of the booking
+    public void validateRoom(int roomId, int hotelId) {
         try {
-            roomClient.getRoom(roomId);
+            RoomResponse room = roomClient.getRoom(roomId);
+
+            if (room.getHotelId() != hotelId) {
+                throw new RoomNotFoundException(
+                        "Room with ID: " + roomId + " does not exist in hotel with ID: " + hotelId
+                );
+            }
         } catch(FeignException.NotFound e) {
             throw new RoomNotFoundException("Room with ID: " + roomId + " does not exist");
         }
@@ -93,6 +104,14 @@ public class BookingServiceImpl implements BookingService{
     }
 
     @Override
+    public List<Booking> findByHotelId(int hotelId) {
+
+        tenantGuard.assertHotel(hotelId);
+
+        return bookingRepository.findByHotelIdOrderByBookingIdDesc(hotelId);
+    }
+
+    @Override
     public Booking findById(int id) {
 
         Optional<Booking> tempBooking = bookingRepository.findById(id);
@@ -105,16 +124,20 @@ public class BookingServiceImpl implements BookingService{
             throw new BookingNotFoundException("Booking not found with id: " + id);
         }
 
+        tenantGuard.assertHotel(theBooking.getHotelId());
+
         return theBooking;
     }
 
     @Override
     public BookingResponse save(BookingRequest bookingRequest) {
 
+        tenantGuard.assertHotel(bookingRequest.getHotelId());
+
         validateCustomer(bookingRequest.getCustomerId());
         validateDates(bookingRequest);
         validateHotel(bookingRequest.getHotelId());
-        validateRoom(bookingRequest.getRoomId());
+        validateRoom(bookingRequest.getRoomId(), bookingRequest.getHotelId());
         boolean isAvailable = validateAvailability(
                 bookingRequest.getRoomId(),
                 bookingRequest.getCheckInDate(),
@@ -161,10 +184,12 @@ public class BookingServiceImpl implements BookingService{
     @Override
     public Booking update(int id, BookingRequest bookingRequest) {
 
+        tenantGuard.assertHotel(bookingRequest.getHotelId());
+
         validateCustomer(bookingRequest.getCustomerId());
         validateDates(bookingRequest);
         validateHotel(bookingRequest.getHotelId());
-        validateRoom(bookingRequest.getRoomId());
+        validateRoom(bookingRequest.getRoomId(), bookingRequest.getHotelId());
 
         Booking tempBooking = findById(id);
         tempBooking.setCustomerId(bookingRequest.getCustomerId());
@@ -182,16 +207,20 @@ public class BookingServiceImpl implements BookingService{
     public Booking confirmBooking(int bookingId) {
 
         Booking tempBooking = findById(bookingId);
+
+        if (tempBooking.getStatus() != BookingStatus.PENDING) {
+            throw new BookingCannotBeConfirmedException("Only pending booking can be confirmed");
+        }
+
+        // reserve the dates first, so a failed reservation never leaves a CONFIRMED booking behind
+        availabilityClient.createBooking(
+                tempBooking.getRoomId(),
+                tempBooking.getCheckInDate(),
+                tempBooking.getCheckOutDate());
+
         tempBooking.setStatus(BookingStatus.CONFIRMED);
 
-        Booking confirmedBooking = bookingRepository.save(tempBooking);
-
-        availabilityClient.createBooking(
-                confirmedBooking.getRoomId(),
-                confirmedBooking.getCheckInDate(),
-                confirmedBooking.getCheckOutDate());
-
-        return confirmedBooking;
+        return bookingRepository.save(tempBooking);
     }
 
     @Override

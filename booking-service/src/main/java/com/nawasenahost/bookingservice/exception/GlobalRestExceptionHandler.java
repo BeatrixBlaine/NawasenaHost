@@ -1,6 +1,7 @@
 package com.nawasenahost.bookingservice.exception;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -54,6 +55,15 @@ public class GlobalRestExceptionHandler {
                 System.currentTimeMillis());
     }
 
+    @ExceptionHandler(BookingCannotBeConfirmedException.class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public ErrorResponse handleBookingCannotBeConfirmed(BookingCannotBeConfirmedException e) {
+        return new ErrorResponse(
+                HttpStatus.CONFLICT.value(),
+                e.getMessage(),
+                System.currentTimeMillis());
+    }
+
     @ExceptionHandler(BookingNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public ErrorResponse handleBookingNotFound(BookingNotFoundException e) {
@@ -72,6 +82,15 @@ public class GlobalRestExceptionHandler {
                 e.getBindingResult().getFieldError().getDefaultMessage(),
                 System.currentTimeMillis()
         );
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    public ErrorResponse handleAccessDenied(AccessDeniedException e) {
+        return new ErrorResponse(
+                HttpStatus.FORBIDDEN.value(),
+                e.getMessage(),
+                System.currentTimeMillis());
     }
 
 }

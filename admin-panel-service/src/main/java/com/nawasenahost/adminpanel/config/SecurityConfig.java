@@ -9,10 +9,12 @@ import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
+import org.springframework.security.web.context.SecurityContextRepository;
 
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
-import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 
 @Configuration
 public class SecurityConfig {
@@ -20,16 +22,23 @@ public class SecurityConfig {
     @Value("${jwt.secret}")
     private String jwtSecret;
 
+    // same way auth-service signs the token: the secret is Base64 encoded
     @Bean
     public JwtDecoder jwtDecoder() {
+
         SecretKey key = new SecretKeySpec(
-                jwtSecret.getBytes(StandardCharsets.UTF_8),
+                Base64.getDecoder().decode(jwtSecret),
                 "HmacSHA256"
         );
 
         return NimbusJwtDecoder.withSecretKey(key)
                 .macAlgorithm(MacAlgorithm.HS256)
                 .build();
+    }
+
+    @Bean
+    public SecurityContextRepository securityContextRepository() {
+        return new HttpSessionSecurityContextRepository();
     }
 
     @Bean
@@ -47,23 +56,26 @@ public class SecurityConfig {
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
+                .securityContext(context -> context
+                        .securityContextRepository(securityContextRepository())
+                )
                 .formLogin(form -> form.disable())
                 .httpBasic(basic -> basic.disable())
-                .csrf(csrf -> csrf.disable())
+                // csrf stays enabled, every th:action form gets its token automatically
                 .exceptionHandling(exception -> exception
                         .authenticationEntryPoint((request, response, authException) ->
                                 response.sendRedirect("/login-page")
                         )
                 )
                 .logout(logout -> logout
-                .logoutUrl("/logout")
-                .logoutSuccessHandler((request, response, authentication) ->
-                        response.sendRedirect("/login-page?logout")
-                )
-                .invalidateHttpSession(true)
-                .clearAuthentication(true)
-                .deleteCookies("JSESSIONID")
-        );
+                        .logoutUrl("/logout")
+                        .logoutSuccessHandler((request, response, authentication) ->
+                                response.sendRedirect("/login-page?logout")
+                        )
+                        .invalidateHttpSession(true)
+                        .clearAuthentication(true)
+                        .deleteCookies("JSESSIONID")
+                );
 
         return http.build();
     }
@@ -72,6 +84,4 @@ public class SecurityConfig {
     public InMemoryUserDetailsManager userDetailsService() {
         return new InMemoryUserDetailsManager();
     }
-
-
 }

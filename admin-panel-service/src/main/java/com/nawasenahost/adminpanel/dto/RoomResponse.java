@@ -1,6 +1,7 @@
 package com.nawasenahost.adminpanel.dto;
 
 public record RoomResponse(int roomId,
+                           int hotelId,
                            String roomNumber,
                            String roomType,
                            double price,

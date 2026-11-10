@@ -2,6 +2,6 @@ package com.nawasenahost.authservice.service;
 
 public interface JwtService {
 
-    String generateToken(String username, String role);
+    String generateToken(String username, String role, int hotelId);
 
 }

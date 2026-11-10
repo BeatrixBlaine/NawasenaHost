@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('New booking')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: nav('availabilities')}"></header>
+
+<main class="mx-auto max-w-5xl px-6 py-10">
+
+    <div class="mb-8">
+        <h1 class="text-xl font-semibold tracking-tight">New booking</h1>
+        <p class="mt-1 text-sm text-stone-500">Pick the dates, then choose a free room.</p>
+    </div>
+
+    <div th:replace="~{fragments/layout :: alerts}"></div>
+
+    <form th:action="@{/availabilities}" method="get" class="card mb-8 flex flex-wrap items-end gap-4 p-5">
+        <div>
+            <label for="checkInDate" class="label">Check-in</label>
+            <input id="checkInDate" name="checkInDate" type="date" required th:value="${checkInDate}" class="input">
+        </div>
+        <div>
+            <label for="checkOutDate" class="label">Check-out</label>
+            <input id="checkOutDate" name="checkOutDate" type="date" required th:value="${checkOutDate}" class="input">
+        </div>
+        <button type="submit" class="btn">Search rooms</button>
+    </form>
+
+    <div th:if="${searched}" class="card overflow-hidden">
+        <table class="w-full">
+            <thead class="border-b border-stone-200">
+            <tr>
+                <th class="th">Room</th>
+                <th class="th">Type</th>
+                <th class="th">Capacity</th>
+                <th class="th text-right">Price / night</th>
+                <th class="th"></th>
+            </tr>
+            </thead>
+            <tbody class="divide-y divide-stone-100">
+            <tr th:each="room : ${rooms}">
+                <td class="td font-medium text-stone-900" th:text="${room.roomNumber}"></td>
+                <td class="td" th:text="${room.roomType}"></td>
+                <td class="td" th:text="${room.capacity} + ' guests'"></td>
+                <td class="td text-right" th:text="${#numbers.formatDecimal(room.price, 1, 'COMMA', 0, 'POINT')}"></td>
+                <td class="td text-right">
+                    <a th:href="@{/booking-page(roomId=${room.roomId}, checkInDate=${checkInDate}, checkOutDate=${checkOutDate})}"
+                       class="btn-ghost">Book</a>
+                </td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(rooms)}">
+                <td colspan="5" class="td py-8 text-center text-stone-400">No room is available for these dates.</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</main>
+
+</body>
+</html>

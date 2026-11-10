@@ -1,6 +1,7 @@
 package com.nawasenahost.availabilityservice.rest;
 
 import com.nawasenahost.availabilityservice.dto.AvailabilityRequest;
+import com.nawasenahost.availabilityservice.dto.RoomResponse;
 import com.nawasenahost.availabilityservice.entity.Availability;
 import com.nawasenahost.availabilityservice.service.AvailabilityService;
 import jakarta.validation.Valid;
@@ -44,6 +45,15 @@ public class AvailabilityRestController {
     public String deleteAvailability(@PathVariable int availabilityId) {
         availabilityService.deleteById(availabilityId);
         return "Availability with id: " + availabilityId + " deleted";
+    }
+
+    // endpoint to be called by admin-panel-service
+    @GetMapping("/availabilities/hotel/{hotelId}/available-rooms")
+    public List<RoomResponse> getAvailableRooms(
+            @PathVariable int hotelId,
+            @RequestParam LocalDate checkInDate,
+            @RequestParam LocalDate checkOutDate) {
+        return availabilityService.findAvailableRooms(hotelId, checkInDate, checkOutDate);
     }
 
     // endpoints to be called by booking-service

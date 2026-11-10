@@ -1,5 +1,6 @@
 package com.nawasenahost.authservice.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
@@ -95,6 +96,7 @@ public class Auth {
         this.email = email;
     }
 
+    @JsonIgnore
     public String getPassword() {
         return password;
     }

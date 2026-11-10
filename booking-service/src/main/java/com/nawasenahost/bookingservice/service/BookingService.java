@@ -9,6 +9,7 @@ import java.util.List;
 public interface BookingService {
 
     List<Booking> findAll();
+    List<Booking> findByHotelId(int hotelId);
     Booking findById(int id);
     BookingResponse save(BookingRequest bookingRequest);
     void deleteById(int id);

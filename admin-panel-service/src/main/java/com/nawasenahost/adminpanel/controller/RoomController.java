@@ -1,79 +1,39 @@
 package com.nawasenahost.adminpanel.controller;
 
-import com.nawasenahost.adminpanel.exception.ErrorResponse;
-import com.nawasenahost.adminpanel.dto.RoomResponse;
 import com.nawasenahost.adminpanel.dto.SessionData;
+import com.nawasenahost.adminpanel.exception.ApiException;
+import com.nawasenahost.adminpanel.service.RoomService;
+import com.nawasenahost.adminpanel.service.SessionService;
 import jakarta.servlet.http.HttpSession;
-import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.reactive.function.client.WebClient;
-import org.springframework.web.reactive.function.client.WebClientResponseException;
-
-import java.util.List;
 
 @Controller
 public class RoomController {
 
-    private final WebClient webClient;
+    private final SessionService sessionService;
+    private final RoomService roomService;
 
-    public RoomController(WebClient webClient) {
-        this.webClient = webClient;
-    }
-
-    public SessionData getSessionData(HttpSession session) {
-        return new SessionData(
-                (String) session.getAttribute("accessToken"),
-                (String) session.getAttribute("role"),
-                (int) session.getAttribute("authId"),
-                (int) session.getAttribute("hotelId"),
-                (String) session.getAttribute("tokenType")
-        );
+    public RoomController(SessionService sessionService,
+                          RoomService roomService) {
+        this.sessionService = sessionService;
+        this.roomService = roomService;
     }
 
     @GetMapping("/rooms")
-    public String getRooms(HttpSession session,
-                           Model model) {
+    public String rooms(HttpSession session, Model model) {
 
-        SessionData data = getSessionData(session);
+        SessionData sessionData = sessionService.get(session);
+
+        model.addAttribute("activePage", "rooms");
 
         try {
-            List<RoomResponse> rooms = webClient.get()
-                    .uri("/api/rooms/{hotelId}", data.hotelId())
-                    .headers(headers -> headers.setBearerAuth(data.token()))
-                    .retrieve()
-                    .bodyToMono(new ParameterizedTypeReference<List<RoomResponse>>() {})
-                    .block();
-
-            model.addAttribute("rooms", rooms);
-        } catch (WebClientResponseException e) {
-            ErrorResponse error;
-
-            try {
-                error = e.getResponseBodyAs(ErrorResponse.class);
-            } catch (Exception ignored) {
-                error = null;
-            }
-
-            if (error == null) {
-                error = new ErrorResponse(
-                        e.getStatusCode().value(),
-                        "An unexpected error occurred.",
-                        System.currentTimeMillis()
-                );
-            }
-
-            if (e.getStatusCode() == HttpStatus.UNAUTHORIZED) {
-                return "redirect:/login-page";
-            }
-
-            model.addAttribute("error", error);
-            return "room";
+            model.addAttribute("rooms", roomService.findAll(sessionData));
+        } catch (ApiException e) {
+            model.addAttribute("error", e.getError().getMessage());
         }
 
         return "room";
     }
-
 }

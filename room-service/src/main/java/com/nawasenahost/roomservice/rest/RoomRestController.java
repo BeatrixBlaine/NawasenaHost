@@ -4,10 +4,12 @@ import com.nawasenahost.roomservice.dto.RoomRequest;
 import com.nawasenahost.roomservice.entity.Room;
 import com.nawasenahost.roomservice.service.RoomService;
 import jakarta.validation.Valid;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@Validated
 @RestController
 @RequestMapping("/api")
 public class RoomRestController {
@@ -52,7 +54,7 @@ public class RoomRestController {
 
     @PostMapping("/rooms/batch")
     public List<Room> addBatchRoom(@RequestParam int hotelId,
-                                   @RequestBody List<RoomRequest> requests) {
+                                   @Valid @RequestBody List<RoomRequest> requests) {
         return roomService.initializeRoomInventory(hotelId, requests);
     }
 }

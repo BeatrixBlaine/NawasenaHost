@@ -1,6 +1,6 @@
 package com.nawasenahost.customerservice.dto;
 
-import jakarta.validation.constraints.Future;
+import jakarta.validation.constraints.FutureOrPresent;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 
@@ -17,11 +17,11 @@ public class BookingData {
     private int roomId;
 
     @NotNull(message = "Check-in date is required")
-    @Future(message = "Check-in date must be in the future")
+    @FutureOrPresent(message = "Check-in date must not be in the past")
     private LocalDate checkInDate;
 
     @NotNull(message = "Check-out date is required")
-    @Future(message = "Check-out date must be in the future")
+    @FutureOrPresent(message = "Check-out date must not be in the past")
     private LocalDate checkOutDate;
 
     @Min(value = 1, message = "Guest count must be at least 1")

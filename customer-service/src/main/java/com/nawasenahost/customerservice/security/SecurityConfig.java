@@ -16,7 +16,13 @@ import org.springframework.security.web.SecurityFilterChain;
 
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
+import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 import java.text.ParseException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Base64;
 
 @Configuration
@@ -72,7 +78,14 @@ public class SecurityConfig {
                 .csrf(configurer -> configurer.disable())
                 .authorizeHttpRequests(configurer -> configurer
 
-                        .requestMatchers(HttpMethod.GET, "/api/customers/{customerId}").hasAuthority("SCOPE_customer.read")
+                        .requestMatchers(HttpMethod.GET, "/api/customers").hasRole("MANAGER")
+                        .requestMatchers(HttpMethod.GET, "/api/customers/{customerId}").hasAnyAuthority("SCOPE_customer.read", "ROLE_MANAGER", "ROLE_ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/api/customers/create-new-booking").hasAnyRole("MANAGER", "ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/api/customers").hasAnyRole("MANAGER", "ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/customers/{customerId}").hasRole("MANAGER")
+                        .requestMatchers(HttpMethod.DELETE, "/api/customers/{customerId}").hasRole("MANAGER")
+                        .requestMatchers("/actuator/health/**").permitAll()
+                        .requestMatchers("/actuator/**").hasRole("MANAGER")
                         .requestMatchers(
                                 "/my-ui.html",
                                 "/swagger-ui/**",
@@ -83,8 +96,13 @@ public class SecurityConfig {
 
                         .anyRequest().authenticated())
                 .oauth2ResourceServer(oauth2 -> oauth2
-                        .jwt(Customizer.withDefaults()))
+                        .jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter())))
                 .exceptionHandling(configurer -> configurer
+                        .accessDeniedHandler((request, response, accessDeniedException) -> {
+                            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                            response.setContentType("application/json");
+                            response.getWriter().write("{\"status\":403,\"error\":\"Forbidden\",\"message\":\"You are not allowed to access this resource\"}");
+                        })
                         .authenticationEntryPoint((request, response, authException) -> {
                             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                             response.setContentType("application/json");
@@ -92,6 +110,25 @@ public class SecurityConfig {
                         }));
 
         return http.build();
+    }
+
+    private JwtAuthenticationConverter jwtAuthenticationConverter() {
+
+        JwtGrantedAuthoritiesConverter scopeConverter = new JwtGrantedAuthoritiesConverter();
+
+        JwtAuthenticationConverter converter = new JwtAuthenticationConverter();
+        converter.setJwtGrantedAuthoritiesConverter(jwt -> {
+            List<GrantedAuthority> authorities = new ArrayList<>(scopeConverter.convert(jwt));
+
+            String role = jwt.getClaimAsString("role");
+            if (role != null) {
+                authorities.add(new SimpleGrantedAuthority("ROLE_" + role));
+            }
+
+            return authorities;
+        });
+
+        return converter;
     }
 
 }
