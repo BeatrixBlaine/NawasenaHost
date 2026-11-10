@@ -6,7 +6,6 @@ import com.nawasenahost.adminpanel.dto.BookingRequest;
 import com.nawasenahost.adminpanel.dto.BookingResponse;
 import com.nawasenahost.adminpanel.dto.BookingSummary;
 import com.nawasenahost.adminpanel.dto.CustomerData;
-import com.nawasenahost.adminpanel.dto.PaymentResponse;
 import com.nawasenahost.adminpanel.dto.RoomResponse;
 import com.nawasenahost.adminpanel.dto.SessionData;
 import com.nawasenahost.adminpanel.exception.ApiException;
@@ -140,6 +139,8 @@ public class BookingController {
         customerData.setPhone(form.getPhone());
 
         BookingData bookingData = new BookingData();
+        bookingData.setCustomerId(0);
+        bookingData.setHotelId(sessionData.hotelId());
         bookingData.setRoomId(form.getRoomId());
         bookingData.setCheckInDate(form.getCheckInDate());
         bookingData.setCheckOutDate(form.getCheckOutDate());

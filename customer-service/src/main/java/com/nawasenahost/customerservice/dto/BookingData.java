@@ -27,11 +27,11 @@ public class BookingData {
     @Min(value = 1, message = "Guest count must be at least 1")
     private int guestCount;
 
-    public int getCustomerId() {
+    public Integer getCustomerId() {
         return customerId;
     }
 
-    public void setCustomerId(int customerId) {
+    public void setCustomerId(Integer customerId) {
         this.customerId = customerId;
     }
 

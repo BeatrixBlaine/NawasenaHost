@@ -84,7 +84,6 @@ public class CustomerServiceImpl implements CustomerService {
 
     // if the booking fails, the newly saved customer is rolled back too
     @Override
-    @Transactional
     public BookingResponse createNewBooking(BookingRequest bookingRequest) {
 
         tenantGuard.assertHotel(bookingRequest.getBookingData().getHotelId());
