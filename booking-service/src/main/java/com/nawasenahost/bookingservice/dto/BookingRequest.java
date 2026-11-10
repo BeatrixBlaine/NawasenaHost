@@ -1,7 +1,7 @@
 package com.nawasenahost.bookingservice.dto;
 
 import com.nawasenahost.bookingservice.entity.BookingStatus;
-import jakarta.validation.constraints.Future;
+import jakarta.validation.constraints.FutureOrPresent;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 
@@ -19,11 +19,11 @@ public class BookingRequest {
     private int roomId;
 
     @NotNull(message = "Check-in date is required")
-    @Future(message = "Check-in date must be in the future")
+    @FutureOrPresent(message = "Check-in date must not be in the past")
     private LocalDate checkInDate;
 
     @NotNull(message = "Check-out date is required")
-    @Future(message = "Check-out date must be in the future")
+    @FutureOrPresent(message = "Check-out date must not be in the past")
     private LocalDate checkOutDate;
 
     @Min(value = 1, message = "Guest count must be at least 1")
@@ -53,19 +53,19 @@ public class BookingRequest {
         this.roomId = roomId;
     }
 
-    public @NotNull(message = "Check-in date is required") @Future(message = "Check-in date must be in the future") LocalDate getCheckInDate() {
+    public @NotNull(message = "Check-in date is required") @FutureOrPresent(message = "Check-in date must not be in the past") LocalDate getCheckInDate() {
         return checkInDate;
     }
 
-    public void setCheckInDate(@NotNull(message = "Check-in date is required") @Future(message = "Check-in date must be in the future") LocalDate checkInDate) {
+    public void setCheckInDate(@NotNull(message = "Check-in date is required") @FutureOrPresent(message = "Check-in date must not be in the past") LocalDate checkInDate) {
         this.checkInDate = checkInDate;
     }
 
-    public @NotNull(message = "Check-out date is required") @Future(message = "Check-out date must be in the future") LocalDate getCheckOutDate() {
+    public @NotNull(message = "Check-out date is required") @FutureOrPresent(message = "Check-out date must not be in the past") LocalDate getCheckOutDate() {
         return checkOutDate;
     }
 
-    public void setCheckOutDate(@NotNull(message = "Check-out date is required") @Future(message = "Check-out date must be in the future") LocalDate checkOutDate) {
+    public void setCheckOutDate(@NotNull(message = "Check-out date is required") @FutureOrPresent(message = "Check-out date must not be in the past") LocalDate checkOutDate) {
         this.checkOutDate = checkOutDate;
     }
 

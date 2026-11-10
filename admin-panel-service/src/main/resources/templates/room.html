@@ -1,57 +1,42 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rooms</title>
-
-    <style>
-        table {
-            border-collapse: collapse;
-            width: 100%;
-        }
-
-        th, td {
-            border: 1px solid #ccc;
-            padding: 8px;
-            text-align: left;
-        }
-
-        th {
-            background-color: #f2f2f2;
-        }
-    </style>
-</head>
+<head th:replace="~{fragments/layout :: head('Rooms')}"></head>
 <body>
+<header th:replace="~{fragments/layout :: nav('rooms')}"></header>
 
-<h1>Room List</h1>
+<main class="mx-auto max-w-5xl px-6 py-10">
 
-<p th:if="${#lists.isEmpty(rooms)}">
-    No rooms found.
-</p>
+    <div class="mb-8">
+        <h1 class="text-xl font-semibold tracking-tight">Rooms</h1>
+        <p class="mt-1 text-sm text-stone-500">All rooms of your hotel.</p>
+    </div>
 
-<table th:unless="${#lists.isEmpty(rooms)}">
-    <thead>
-    <tr>
-        <th>Room Number</th>
-        <th>Room Type</th>
-        <th>Capacity</th>
-        <th>Price</th>
-        <th>Description</th>
-    </tr>
-    </thead>
+    <div th:replace="~{fragments/layout :: alerts}"></div>
 
-    <tbody>
-    <tr th:each="room : ${rooms}">
-        <td th:text="${room.roomNumber}"></td>
-        <td th:text="${room.roomType}"></td>
-        <td th:text="${room.capacity}"></td>
-        <td th:text="${room.price}"></td>
-        <td th:text="${room.description}"></td>
-    </tr>
-    </tbody>
-</table>
+    <div class="card overflow-hidden">
+        <table class="w-full">
+            <thead class="border-b border-stone-200">
+            <tr>
+                <th class="th">Room</th>
+                <th class="th">Type</th>
+                <th class="th">Capacity</th>
+                <th class="th text-right">Price / night</th>
+            </tr>
+            </thead>
+            <tbody class="divide-y divide-stone-100">
+            <tr th:each="room : ${rooms}">
+                <td class="td font-medium text-stone-900" th:text="${room.roomNumber}"></td>
+                <td class="td" th:text="${room.roomType}"></td>
+                <td class="td" th:text="${room.capacity} + ' guests'"></td>
+                <td class="td text-right" th:text="${#numbers.formatDecimal(room.price, 1, 'COMMA', 0, 'POINT')}"></td>
+            </tr>
+            <tr th:if="${rooms == null or #lists.isEmpty(rooms)}">
+                <td colspan="4" class="td py-8 text-center text-stone-400">No rooms found.</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</main>
 
 </body>
 </html>
-```

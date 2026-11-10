@@ -4,9 +4,13 @@ import com.nawasenahost.availabilityservice.client.RoomClient;
 import com.nawasenahost.availabilityservice.entity.RoomInventory;
 import com.nawasenahost.availabilityservice.repository.RoomInventoryRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class RoomInventoryServiceImpl implements RoomInventoryService{
@@ -19,23 +23,42 @@ public class RoomInventoryServiceImpl implements RoomInventoryService{
         this.roomClient = roomClient;
     }
 
+    @Override
+    @Transactional
     public void initializeInventory(int hotelId, int totalRooms) {
 
         LocalDate startDate = LocalDate.now();
         LocalDate endDate = startDate.plusMonths(12);
 
+        // load existing inventory once instead of querying every day
+        Map<LocalDate, RoomInventory> existingInventory = new HashMap<>();
+
+        for (RoomInventory theInventory : roomInventoryRepository
+                .findByHotelIdAndDateGreaterThanEqualAndDateLessThanOrderByDateAsc(
+                        hotelId, startDate, endDate)) {
+            existingInventory.put(theInventory.getDate(), theInventory);
+        }
+
+        List<RoomInventory> inventories = new ArrayList<>();
+
         for (LocalDate date = startDate;
              date.isBefore(endDate);
              date = date.plusDays(1)) {
 
-            RoomInventory inventory = roomInventoryRepository
-                    .findByHotelIdAndDate(hotelId, date)
-                    .orElse(new RoomInventory(hotelId, date, 0, 0, 0));
+            RoomInventory tempInventory = existingInventory.get(date);
 
-            inventory.setTotal(inventory.getTotal() + totalRooms);
+            if (tempInventory == null) {
+                tempInventory = new RoomInventory(hotelId, date, 0, 0, 0);
+            }
 
-            roomInventoryRepository.save(inventory);
+            // total follows the real room count, so calling this twice gives the same result
+            tempInventory.setTotal(totalRooms);
+            tempInventory.setAvailable(Math.max(totalRooms - tempInventory.getReserved(), 0));
+
+            inventories.add(tempInventory);
         }
+
+        roomInventoryRepository.saveAll(inventories);
     }
 
     @Override

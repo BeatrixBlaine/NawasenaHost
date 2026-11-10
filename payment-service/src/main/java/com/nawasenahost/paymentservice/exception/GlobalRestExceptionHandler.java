@@ -1,6 +1,7 @@
 package com.nawasenahost.paymentservice.exception;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -22,8 +23,38 @@ public class GlobalRestExceptionHandler {
 
     @ExceptionHandler(BookingNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    public String handleBookingNotFound(BookingNotFoundException e) {
-        return e.getMessage();
+    public PaymentErrorResponse handleBookingNotFound(BookingNotFoundException e) {
+
+        PaymentErrorResponse error = new PaymentErrorResponse();
+        error.setStatus(HttpStatus.NOT_FOUND.value());
+        error.setMessage(e.getMessage());
+        error.setTimeStamp(System.currentTimeMillis());
+
+        return error;
+    }
+
+    @ExceptionHandler(PaymentConflictException.class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public PaymentErrorResponse handlePaymentConflict(PaymentConflictException e) {
+
+        PaymentErrorResponse error = new PaymentErrorResponse();
+        error.setStatus(HttpStatus.CONFLICT.value());
+        error.setMessage(e.getMessage());
+        error.setTimeStamp(System.currentTimeMillis());
+
+        return error;
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    public PaymentErrorResponse handleAccessDenied(AccessDeniedException e) {
+
+        PaymentErrorResponse error = new PaymentErrorResponse();
+        error.setStatus(HttpStatus.FORBIDDEN.value());
+        error.setMessage(e.getMessage());
+        error.setTimeStamp(System.currentTimeMillis());
+
+        return error;
     }
 
 }

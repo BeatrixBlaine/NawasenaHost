@@ -1,6 +1,7 @@
 package com.nawasenahost.customerservice.exception;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -22,6 +23,18 @@ public class GlobalRestExceptionHandler {
         CustomerErrorResponse error = new CustomerErrorResponse();
         error.setMessage(e.getBindingResult().getFieldError().getDefaultMessage());
         error.setStatus(HttpStatus.BAD_REQUEST.value());
+        error.setTimeStamp(System.currentTimeMillis());
+
+        return error;
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    public CustomerErrorResponse handleAccessDenied(AccessDeniedException e) {
+
+        CustomerErrorResponse error = new CustomerErrorResponse();
+        error.setStatus(HttpStatus.FORBIDDEN.value());
+        error.setMessage(e.getMessage());
         error.setTimeStamp(System.currentTimeMillis());
 
         return error;

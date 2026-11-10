@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Booking')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: nav('bookings')}"></header>
+
+<main class="mx-auto max-w-2xl px-6 py-10">
+
+    <a th:href="@{/bookings}" class="text-sm text-stone-500 hover:text-stone-900">← All bookings</a>
+
+    <div class="mb-8 mt-4 flex items-center justify-between">
+        <h1 class="text-xl font-semibold tracking-tight" th:text="'Booking #' + ${booking.bookingId}"></h1>
+        <span th:replace="~{fragments/layout :: status(${booking.status})}"></span>
+    </div>
+
+    <div th:replace="~{fragments/layout :: alerts}"></div>
+
+    <section class="card divide-y divide-stone-100">
+        <div class="flex justify-between px-5 py-3 text-sm">
+            <span class="text-stone-500">Guest</span>
+            <span th:if="${customer != null}" th:text="${customer.firstName} + ' ' + ${customer.lastName}"></span>
+            <span th:if="${customer == null}" th:text="'Customer #' + ${booking.customerId}"></span>
+        </div>
+        <div class="flex justify-between px-5 py-3 text-sm" th:if="${customer != null}">
+            <span class="text-stone-500">Contact</span>
+            <span th:text="${customer.email} + ' · ' + ${customer.phone}"></span>
+        </div>
+        <div class="flex justify-between px-5 py-3 text-sm">
+            <span class="text-stone-500">Room</span>
+            <span th:text="${booking.roomId}"></span>
+        </div>
+        <div class="flex justify-between px-5 py-3 text-sm">
+            <span class="text-stone-500">Stay</span>
+            <span th:text="${booking.checkInDate} + ' → ' + ${booking.checkOutDate}"></span>
+        </div>
+        <div class="flex justify-between px-5 py-3 text-sm">
+            <span class="text-stone-500">Guests</span>
+            <span th:text="${booking.guestCount}"></span>
+        </div>
+    </section>
+
+    <h2 class="mb-3 mt-10 text-sm font-medium">Payment</h2>
+
+    <p th:if="${paymentError}" th:text="${paymentError}" class="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800"></p>
+
+    <section th:if="${payment != null}" class="card p-5">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="label">Amount</p>
+                <p class="text-lg font-semibold"
+                   th:text="${payment.currency != null ? payment.currency : 'IDR'} + ' ' + ${#numbers.formatDecimal(payment.amount, 1, 'COMMA', 0, 'POINT')}"></p>
+            </div>
+            <span th:replace="~{fragments/layout :: status(${payment.paymentStatus})}"></span>
+        </div>
+
+        <p th:if="${payment.paymentStatus == 'SUCCESS'}" class="mt-4 text-sm text-stone-500"
+           th:text="'Paid via ' + ${payment.paymentMethod} + ' (' + ${payment.paymentSource} + ')'"></p>
+
+        <form th:if="${payment.paymentStatus == 'PENDING' and booking.status == 'PENDING'}"
+              th:action="@{/bookings/{id}/confirm-payment(id=${booking.bookingId})}" method="post"
+              class="mt-6 grid gap-4 border-t border-stone-100 pt-5 sm:grid-cols-2">
+            <input type="hidden" name="paymentId" th:value="${payment.paymentid}">
+            <div>
+                <label for="paymentMethod" class="label">Method</label>
+                <select id="paymentMethod" name="paymentMethod" class="input">
+                    <option value="CASH">Cash</option>
+                    <option value="BANK_TRANSFER">Bank transfer</option>
+                    <option value="CREDIT_CARD">Credit card</option>
+                    <option value="DEBIT_CARD">Debit card</option>
+                    <option value="E_WALLET">E-wallet</option>
+                    <option value="VIRTUAL_ACCOUNT">Virtual account</option>
+                    <option value="QRIS">QRIS</option>
+                </select>
+            </div>
+            <div>
+                <label for="paymentSource" class="label">Source</label>
+                <select id="paymentSource" name="paymentSource" class="input">
+                    <option value="DIRECT">Direct</option>
+                    <option value="TRAVELOKA">Traveloka</option>
+                    <option value="AGODA">Agoda</option>
+                    <option value="REDDOORZ">RedDoorz</option>
+                </select>
+            </div>
+            <div class="sm:col-span-2">
+                <button type="submit" class="btn w-full">Confirm payment</button>
+            </div>
+        </form>
+    </section>
+
+    <form th:if="${booking.status == 'PENDING'}" th:action="@{/cancel-pending-booking}" method="post" class="mt-6">
+        <input type="hidden" name="bookingId" th:value="${booking.bookingId}">
+        <button type="submit" class="btn-danger">Cancel booking</button>
+    </form>
+</main>
+
+</body>
+</html>

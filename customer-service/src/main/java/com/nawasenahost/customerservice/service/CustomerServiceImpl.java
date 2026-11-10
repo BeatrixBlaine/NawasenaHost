@@ -8,8 +8,10 @@ import com.nawasenahost.customerservice.dto.CustomerData;
 import com.nawasenahost.customerservice.entity.Customer;
 import com.nawasenahost.customerservice.exception.CustomerNotFoundException;
 import com.nawasenahost.customerservice.repository.CustomerRepository;
+import com.nawasenahost.customerservice.security.TenantGuard;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -19,12 +21,15 @@ public class CustomerServiceImpl implements CustomerService {
 
     private final CustomerRepository customerRepository;
     private final BookingClient bookingClient;
+    private final TenantGuard tenantGuard;
 
     @Autowired
     public CustomerServiceImpl(CustomerRepository customerRepository,
-                               BookingClient bookingClient) {
+                               BookingClient bookingClient,
+                               TenantGuard tenantGuard) {
         this.customerRepository = customerRepository;
         this.bookingClient = bookingClient;
+        this.tenantGuard = tenantGuard;
     }
 
     @Override
@@ -77,8 +82,12 @@ public class CustomerServiceImpl implements CustomerService {
         return customerRepository.save(tempCustomer);
     }
 
+    // if the booking fails, the newly saved customer is rolled back too
     @Override
+    @Transactional
     public BookingResponse createNewBooking(BookingRequest bookingRequest) {
+
+        tenantGuard.assertHotel(bookingRequest.getBookingData().getHotelId());
 
         Customer tempCustomer = new Customer();
         tempCustomer.setFirstName(bookingRequest.getCustomerData().getFirstName());

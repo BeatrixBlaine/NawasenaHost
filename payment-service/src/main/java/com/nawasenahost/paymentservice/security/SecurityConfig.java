@@ -16,7 +16,13 @@ import org.springframework.security.web.SecurityFilterChain;
 
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
+import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 import java.text.ParseException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Base64;
 
 @Configuration
@@ -72,8 +78,17 @@ public class SecurityConfig {
                 .httpBasic(configurer -> configurer.disable())
                 .authorizeHttpRequests(configurer -> configurer
 
-                        .requestMatchers(HttpMethod.POST,"/api/payments/create-payment").hasAuthority("SCOPE_payment.create")
-                        .requestMatchers(HttpMethod.PUT,"/api/payments/cancel-payment-by-booking-id").hasAuthority("SCOPE_payment.create")
+                        .requestMatchers(HttpMethod.GET, "/api/payments").denyAll()
+                        .requestMatchers(HttpMethod.GET, "/api/payments/booking/{bookingId}").hasAnyRole("MANAGER", "ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/payments/{paymentId}").hasAnyRole("MANAGER", "ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/api/payments/create-payment").hasAuthority("SCOPE_payment.create")
+                        .requestMatchers(HttpMethod.POST, "/api/payments/confirm-payment").hasAnyRole("MANAGER", "ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/payments/cancel-payment-by-booking-id").hasAuthority("SCOPE_payment.create")
+                        .requestMatchers(HttpMethod.POST, "/api/payments").hasRole("MANAGER")
+                        .requestMatchers(HttpMethod.PUT, "/api/payments/{paymentId}").hasRole("MANAGER")
+                        .requestMatchers(HttpMethod.DELETE, "/api/payments/{paymentId}").hasRole("MANAGER")
+                        .requestMatchers("/actuator/health/**").permitAll()
+                        .requestMatchers("/actuator/**").hasRole("MANAGER")
                         .requestMatchers(
                                 "/my-ui.html",
                                 "/swagger-ui/**",
@@ -84,8 +99,13 @@ public class SecurityConfig {
 
                         .anyRequest().authenticated())
                 .oauth2ResourceServer(configurer -> configurer
-                        .jwt(Customizer.withDefaults()))
+                        .jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter())))
                 .exceptionHandling(configurer -> configurer
+                        .accessDeniedHandler((request, response, accessDeniedException) -> {
+                            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                            response.setContentType("application/json");
+                            response.getWriter().write("{\"status\":403,\"error\":\"Forbidden\",\"message\":\"You are not allowed to access this resource\"}");
+                        })
                         .authenticationEntryPoint((request, response, authException) -> {
                             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                             response.setContentType("application/json");
@@ -93,6 +113,25 @@ public class SecurityConfig {
                         }));
 
         return http.build();
+    }
+
+    private JwtAuthenticationConverter jwtAuthenticationConverter() {
+
+        JwtGrantedAuthoritiesConverter scopeConverter = new JwtGrantedAuthoritiesConverter();
+
+        JwtAuthenticationConverter converter = new JwtAuthenticationConverter();
+        converter.setJwtGrantedAuthoritiesConverter(jwt -> {
+            List<GrantedAuthority> authorities = new ArrayList<>(scopeConverter.convert(jwt));
+
+            String role = jwt.getClaimAsString("role");
+            if (role != null) {
+                authorities.add(new SimpleGrantedAuthority("ROLE_" + role));
+            }
+
+            return authorities;
+        });
+
+        return converter;
     }
 
 }

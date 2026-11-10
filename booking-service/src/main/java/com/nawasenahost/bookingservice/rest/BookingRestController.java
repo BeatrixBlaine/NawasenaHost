@@ -24,6 +24,11 @@ public class BookingRestController {
         return bookingService.findAll();
     }
 
+    @GetMapping("/bookings/hotel/{hotelId}")
+    public List<Booking> getBookingsByHotelId(@PathVariable int hotelId) {
+        return bookingService.findByHotelId(hotelId);
+    }
+
     @GetMapping("/bookings/{bookingId}")
     public Booking getBooking(@PathVariable int bookingId) {
         return bookingService.findById(bookingId);

@@ -1,6 +1,8 @@
 package com.nawasenahost.roomservice.exception;
 
+import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -37,6 +39,46 @@ public class GlobalRestExceptionHandler {
                 e.getMessage(),
                 System.currentTimeMillis()
         );
+    }
+
+    @ExceptionHandler(HotelMismatchException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ErrorResponse handleHotelMismatchException(HotelMismatchException e) {
+        return new ErrorResponse(
+                HttpStatus.BAD_REQUEST.value(),
+                e.getMessage(),
+                System.currentTimeMillis()
+        );
+    }
+
+    // thrown when a list of rooms (batch) fails validation
+    @ExceptionHandler(ConstraintViolationException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ErrorResponse handleConstraintViolationException(ConstraintViolationException e) {
+        return new ErrorResponse(
+                HttpStatus.BAD_REQUEST.value(),
+                e.getConstraintViolations().iterator().next().getMessage(),
+                System.currentTimeMillis()
+        );
+    }
+
+    @ExceptionHandler(InventorySyncException.class)
+    @ResponseStatus(HttpStatus.SERVICE_UNAVAILABLE)
+    public ErrorResponse handleInventorySyncException(InventorySyncException e) {
+        return new ErrorResponse(
+                HttpStatus.SERVICE_UNAVAILABLE.value(),
+                e.getMessage(),
+                System.currentTimeMillis()
+        );
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    public ErrorResponse handleAccessDenied(AccessDeniedException e) {
+        return new ErrorResponse(
+                HttpStatus.FORBIDDEN.value(),
+                e.getMessage(),
+                System.currentTimeMillis());
     }
 
 }

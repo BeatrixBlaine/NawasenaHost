@@ -16,7 +16,13 @@ import org.springframework.security.web.SecurityFilterChain;
 
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
+import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 import java.text.ParseException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Base64;
 
 @Configuration
@@ -72,8 +78,12 @@ public class SecurityConfig {
                 .httpBasic(configurer -> configurer.disable())
                 .authorizeHttpRequests(configurer -> configurer
 
-                        .requestMatchers(HttpMethod.GET,"/api/availabilities/check").hasAuthority("SCOPE_availability.read")
-                        .requestMatchers(HttpMethod.POST,"/api/availabilities/book").hasAuthority("SCOPE_availability.create")
+                        .requestMatchers(HttpMethod.GET, "/api/availabilities/hotel/{hotelId}/available-rooms").hasAnyRole("MANAGER", "ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/availabilities/check").hasAuthority("SCOPE_availability.read")
+                        .requestMatchers(HttpMethod.POST, "/api/availabilities/book").hasAuthority("SCOPE_availability.create")
+                        .requestMatchers(HttpMethod.POST, "/api/inventory/initialize").hasAuthority("SCOPE_inventory.write")
+                        .requestMatchers("/actuator/health/**").permitAll()
+                        .requestMatchers("/actuator/**").hasRole("MANAGER")
                         .requestMatchers(
                                 "/my-ui.html",
                                 "/swagger-ui/**",
@@ -82,10 +92,16 @@ public class SecurityConfig {
                                 "/v3/api-docs",
                                 "/my-api-docs/**").permitAll()
 
-                        .anyRequest().authenticated())
+                        // raw availability CRUD is internal only (service tokens)
+                        .anyRequest().hasAuthority("SCOPE_availability.read"))
                 .oauth2ResourceServer(configurer -> configurer
-                        .jwt(Customizer.withDefaults()))
+                        .jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter())))
                 .exceptionHandling(configurer -> configurer
+                        .accessDeniedHandler((request, response, accessDeniedException) -> {
+                            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                            response.setContentType("application/json");
+                            response.getWriter().write("{\"status\":403,\"error\":\"Forbidden\",\"message\":\"You are not allowed to access this resource\"}");
+                        })
                         .authenticationEntryPoint((request, response, authException) -> {
                             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                             response.setContentType("application/json");
@@ -93,6 +109,25 @@ public class SecurityConfig {
                         }));
 
         return http.build();
+    }
+
+    private JwtAuthenticationConverter jwtAuthenticationConverter() {
+
+        JwtGrantedAuthoritiesConverter scopeConverter = new JwtGrantedAuthoritiesConverter();
+
+        JwtAuthenticationConverter converter = new JwtAuthenticationConverter();
+        converter.setJwtGrantedAuthoritiesConverter(jwt -> {
+            List<GrantedAuthority> authorities = new ArrayList<>(scopeConverter.convert(jwt));
+
+            String role = jwt.getClaimAsString("role");
+            if (role != null) {
+                authorities.add(new SimpleGrantedAuthority("ROLE_" + role));
+            }
+
+            return authorities;
+        });
+
+        return converter;
     }
 
 }

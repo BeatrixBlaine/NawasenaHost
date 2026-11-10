@@ -8,6 +8,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 @Configuration
 public class WebClientConfig {
 
+    // every call goes through api-gateway
     @Value("${auth.service.url}")
     private String authServiceUrl;
 
@@ -15,5 +16,4 @@ public class WebClientConfig {
     public WebClient webClient() {
         return WebClient.builder().baseUrl(authServiceUrl).build();
     }
-
 }

@@ -4,6 +4,7 @@ import com.nawasenahost.hotelservice.dto.HotelRequest;
 import com.nawasenahost.hotelservice.entity.Hotel;
 import com.nawasenahost.hotelservice.exception.HotelNotFoundException;
 import com.nawasenahost.hotelservice.repository.HotelRepository;
+import com.nawasenahost.hotelservice.security.TenantGuard;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -13,9 +14,12 @@ import java.util.Optional;
 public class HotelServiceImpl implements HotelService{
 
     private final HotelRepository hotelRepository;
+    private final TenantGuard tenantGuard;
 
-    public HotelServiceImpl(HotelRepository hotelRepository) {
+    public HotelServiceImpl(HotelRepository hotelRepository,
+                            TenantGuard tenantGuard) {
         this.hotelRepository = hotelRepository;
+        this.tenantGuard = tenantGuard;
     }
 
     @Override
@@ -35,6 +39,8 @@ public class HotelServiceImpl implements HotelService{
         } else {
             throw new HotelNotFoundException("Hotel not found with id: " + id);
         }
+
+        tenantGuard.assertHotel(theHotel.getId());
 
         return theHotel;
     }

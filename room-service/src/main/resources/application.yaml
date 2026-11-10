@@ -11,6 +11,7 @@ spring:
             client-authentication-method: client_secret_basic
             scope:
               - hotel.read
+              - inventory.write
 
         provider:
           auth-service:

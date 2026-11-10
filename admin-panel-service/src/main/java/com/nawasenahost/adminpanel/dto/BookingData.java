@@ -11,11 +11,11 @@ public class BookingData {
     private LocalDate checkOutDate;
     private int guestCount;
 
-    public int getCustomerId() {
+    public Integer getCustomerId() {
         return customerId;
     }
 
-    public void setCustomerId(int customerId) {
+    public void setCustomerId(Integer customerId) {
         this.customerId = customerId;
     }
 

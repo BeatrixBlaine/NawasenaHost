@@ -1,102 +1,61 @@
 package com.nawasenahost.adminpanel.controller;
 
 import com.nawasenahost.adminpanel.dto.SessionData;
+import com.nawasenahost.adminpanel.exception.ApiException;
+import com.nawasenahost.adminpanel.service.AvailabilityService;
+import com.nawasenahost.adminpanel.service.SessionService;
 import jakarta.servlet.http.HttpSession;
-import org.springframework.http.HttpStatus;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.reactive.function.client.WebClient;
-import org.springframework.web.reactive.function.client.WebClientResponseException;
-import com.nawasenahost.adminpanel.exception.ErrorResponse;
 
 import java.time.LocalDate;
 
 @Controller
 public class AvailabilityController {
 
-    private final WebClient webClient;
+    private final SessionService sessionService;
+    private final AvailabilityService availabilityService;
 
-    public AvailabilityController(WebClient webClient) {
-        this.webClient = webClient;
-    }
-
-    public SessionData getSessionData(HttpSession session) {
-        return new SessionData(
-                (String) session.getAttribute("accessToken"),
-                (String) session.getAttribute("role"),
-                (int) session.getAttribute("authId"),
-                (int) session.getAttribute("hotelId"),
-                (String) session.getAttribute("tokenType")
-        );
+    public AvailabilityController(SessionService sessionService,
+                                  AvailabilityService availabilityService) {
+        this.sessionService = sessionService;
+        this.availabilityService = availabilityService;
     }
 
     @GetMapping("/availabilities")
-    public String getAvailability() {
-        return "availability";
-    }
+    public String availabilities(
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate checkInDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate checkOutDate,
+            HttpSession session,
+            Model model) {
 
-    @PostMapping("/availabilities/check")
-    public String checkAvailability(@RequestParam("roomId") int roomId,
-                                    @RequestParam("checkInDate") LocalDate checkInDate,
-                                    @RequestParam("checkOutDate") LocalDate checkOutDate,
-                                    HttpSession session,
-                                    Model model) {
+        SessionData sessionData = sessionService.get(session);
 
-        SessionData data = getSessionData(session);
+        model.addAttribute("activePage", "availabilities");
+        model.addAttribute("checkInDate", checkInDate);
+        model.addAttribute("checkOutDate", checkOutDate);
 
-        try {
-            Boolean isAvailable = webClient.get()
-                    .uri(uriBuilder -> uriBuilder
-                            .path("/api/availabilities/check")
-                            .queryParam("roomId", roomId)
-                            .queryParam("checkInDate", checkInDate)
-                            .queryParam("checkOutDate", checkOutDate)
-                            .build())
-                    .headers(headers -> headers.setBearerAuth(data.token()))
-                    .retrieve()
-                    .bodyToMono(Boolean.class)
-                    .block();
-
-            if (Boolean.TRUE.equals(isAvailable)) {
-                return "redirect:/booking-page?roomId=" + roomId
-                        + "&checkInDate=" + checkInDate
-                        + "&checkOutDate=" + checkOutDate;
-            }
-
-            model.addAttribute("isAvailable", isAvailable);
-            return "availability";
-
-        } catch (WebClientResponseException e) {
-            ErrorResponse error;
-
-            try {
-                error = e.getResponseBodyAs(ErrorResponse.class);
-            } catch (Exception ignored) {
-                error = null;
-            }
-
-            if (error == null) {
-                error = new ErrorResponse(
-                        e.getStatusCode().value(),
-                        "An unexpected error occurred.",
-                        System.currentTimeMillis()
-                );
-            }
-
-            if (e.getStatusCode() == HttpStatus.UNAUTHORIZED) {
-                return "redirect:/login-page";
-            }
-
-            model.addAttribute("error", error);
-            return "availability";
-        } catch (Exception e) {
-            model.addAttribute("error",
-                    "Unable to check availability. Please try again.");
+        // the form was not submitted yet
+        if (checkInDate == null || checkOutDate == null) {
             return "availability";
         }
-    }
 
+        if (!checkOutDate.isAfter(checkInDate)) {
+            model.addAttribute("error", "Check-out date must be after check-in date");
+            return "availability";
+        }
+
+        try {
+            model.addAttribute("rooms", availabilityService
+                    .findAvailableRooms(sessionData, checkInDate, checkOutDate));
+            model.addAttribute("searched", true);
+        } catch (ApiException e) {
+            model.addAttribute("error", e.getError().getMessage());
+        }
+
+        return "availability";
+    }
 }
