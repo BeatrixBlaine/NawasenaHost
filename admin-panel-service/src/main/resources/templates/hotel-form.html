@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html th:replace="~{fragments/layout :: layout('Hotel', 'hotels', ~{::main})}" xmlns:th="http://www.thymeleaf.org">
+<body>
+<main class="mx-auto w-full max-w-2xl px-4 py-6 sm:px-8 sm:py-10">
+
+    <a th:href="@{/hotels}" class="text-sm text-slate-500 hover:text-slate-900">← All hotels</a>
+    <h1 class="page-title mb-6 mt-4" th:text="${hotelId != null} ? 'Edit hotel' : 'Add hotel'"></h1>
+
+    <div th:replace="~{fragments/components :: alerts}"></div>
+
+    <form th:action="${hotelId != null} ? @{/hotels/{id}(id=${hotelId})} : @{/hotels}" th:object="${form}" method="post"
+          class="card space-y-5 p-5 sm:p-6">
+        <div class="grid gap-5 sm:grid-cols-2">
+            <div class="sm:col-span-2">
+                <label for="name" class="label">Name</label>
+                <input id="name" th:field="*{name}" type="text" class="input">
+                <p th:if="${#fields.hasErrors('name')}" th:errors="*{name}" class="field-error"></p>
+            </div>
+            <div class="sm:col-span-2">
+                <label for="description" class="label">Description</label>
+                <textarea id="description" th:field="*{description}" rows="3" class="input"></textarea>
+            </div>
+            <div class="sm:col-span-2">
+                <label for="address" class="label">Address</label>
+                <input id="address" th:field="*{address}" type="text" class="input">
+                <p th:if="${#fields.hasErrors('address')}" th:errors="*{address}" class="field-error"></p>
+            </div>
+            <div>
+                <label for="city" class="label">City</label>
+                <input id="city" th:field="*{city}" type="text" class="input">
+                <p th:if="${#fields.hasErrors('city')}" th:errors="*{city}" class="field-error"></p>
+            </div>
+            <div>
+                <label for="country" class="label">Country</label>
+                <input id="country" th:field="*{country}" type="text" class="input">
+                <p th:if="${#fields.hasErrors('country')}" th:errors="*{country}" class="field-error"></p>
+            </div>
+            <div>
+                <label for="postalCode" class="label">Postal code</label>
+                <input id="postalCode" th:field="*{postalCode}" type="text" class="input">
+                <p th:if="${#fields.hasErrors('postalCode')}" th:errors="*{postalCode}" class="field-error"></p>
+            </div>
+            <div>
+                <label for="phone" class="label">Phone</label>
+                <input id="phone" th:field="*{phone}" type="tel" class="input">
+                <p th:if="${#fields.hasErrors('phone')}" th:errors="*{phone}" class="field-error"></p>
+            </div>
+            <div class="sm:col-span-2">
+                <label for="email" class="label">Email</label>
+                <input id="email" th:field="*{email}" type="email" class="input">
+                <p th:if="${#fields.hasErrors('email')}" th:errors="*{email}" class="field-error"></p>
+            </div>
+        </div>
+        <div class="flex justify-end gap-3 border-t border-slate-100 pt-5">
+            <a th:href="@{/hotels}" class="btn-ghost">Cancel</a>
+            <button type="submit" class="btn">Save</button>
+        </div>
+    </form>
+</main>
+</body>
+</html>

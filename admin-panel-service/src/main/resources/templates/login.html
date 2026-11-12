@@ -1,15 +1,16 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{fragments/layout :: head('Log in')}"></head>
-<body class="flex min-h-screen items-center justify-center px-6">
+<head th:replace="~{fragments/components :: head('Log in')}"></head>
+<body class="flex min-h-screen items-center justify-center bg-white px-5">
 
 <main class="w-full max-w-sm">
-    <h1 class="mb-1 text-xl font-semibold tracking-tight">NawasenaHost</h1>
-    <p class="mb-8 text-sm text-stone-500">Sign in to manage your hotel.</p>
+    <a th:href="@{/login-page}" class="wordmark text-2xl">Nawasena<span>Host</span></a>
+    <h1 class="mt-8 font-display text-xl font-semibold tracking-tight text-slate-900">Welcome back</h1>
+    <p class="mb-8 mt-1 text-sm text-slate-500">Sign in to manage your hotel.</p>
 
-    <p th:if="${param.logout}" class="mb-4 rounded-md border border-stone-200 bg-white px-4 py-3 text-sm text-stone-600">You have been logged out.</p>
-    <p th:if="${param.expired}" class="mb-4 rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">Your session expired, please log in again.</p>
-    <p th:if="${error}" th:text="${error}" class="mb-4 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800"></p>
+    <p th:if="${param.logout}" class="alert-ok mb-4">You have been logged out.</p>
+    <p th:if="${param.expired}" class="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">Your session expired, please log in again.</p>
+    <p th:if="${error}" th:text="${error}" class="alert-error mb-4"></p>
 
     <form th:action="@{/login}" method="post" class="card space-y-4 p-6">
         <div>

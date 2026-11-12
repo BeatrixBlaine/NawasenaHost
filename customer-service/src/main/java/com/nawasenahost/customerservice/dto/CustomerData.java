@@ -23,6 +23,9 @@ public class CustomerData {
     )
     private String phone;
 
+    // optional, only an ADMIN has to send it, a MANAGER or STAFF always uses the assigned hotel
+    private Integer hotelId;
+
     public CustomerData() {
     }
 
@@ -62,5 +65,13 @@ public class CustomerData {
             message = "Invalid phone number format"
     ) String phone) {
         this.phone = phone;
+    }
+
+    public Integer getHotelId() {
+        return hotelId;
+    }
+
+    public void setHotelId(Integer hotelId) {
+        this.hotelId = hotelId;
     }
 }

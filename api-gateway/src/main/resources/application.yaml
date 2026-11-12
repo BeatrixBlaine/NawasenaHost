@@ -14,6 +14,10 @@ spring:
               uri: lb://auth-service
               predicates:
                 - Path=/api/auth/**
+            - id: audit-log-route
+              uri: lb://auth-service
+              predicates:
+                - Path=/api/audit-logs/**
             - id: customer-service
               uri: lb://customer-service
               predicates:
@@ -30,6 +34,10 @@ spring:
               uri: lb://availability-service
               predicates:
                 - Path=/api/availabilities/**
+            - id: inventory-route
+              uri: lb://availability-service
+              predicates:
+                - Path=/api/inventory/**
             - id: booking-service
               uri: lb://booking-service
               predicates:

@@ -78,14 +78,16 @@ public class SecurityConfig {
                 .csrf(configurer -> configurer.disable())
                 .authorizeHttpRequests(configurer -> configurer
 
-                        .requestMatchers(HttpMethod.GET, "/api/customers").hasRole("MANAGER")
-                        .requestMatchers(HttpMethod.GET, "/api/customers/{customerId}").hasAnyAuthority("SCOPE_customer.read", "ROLE_MANAGER", "ROLE_ADMIN")
-                        .requestMatchers(HttpMethod.POST, "/api/customers/create-new-booking").hasAnyRole("MANAGER", "ADMIN")
-                        .requestMatchers(HttpMethod.POST, "/api/customers").hasAnyRole("MANAGER", "ADMIN")
-                        .requestMatchers(HttpMethod.PUT, "/api/customers/{customerId}").hasRole("MANAGER")
-                        .requestMatchers(HttpMethod.DELETE, "/api/customers/{customerId}").hasRole("MANAGER")
+                        .requestMatchers(HttpMethod.GET, "/api/customers").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/customers/hotel/{hotelId}").hasAnyRole("ADMIN", "MANAGER", "STAFF")
+                        .requestMatchers(HttpMethod.GET, "/api/customers/{customerId}").hasAnyAuthority("SCOPE_customer.read", "ROLE_ADMIN", "ROLE_MANAGER", "ROLE_STAFF")
+                        .requestMatchers(HttpMethod.POST, "/api/customers/create-new-booking").hasAnyRole("ADMIN", "MANAGER", "STAFF")
+                        .requestMatchers(HttpMethod.POST, "/api/customers").hasAnyRole("ADMIN", "MANAGER", "STAFF")
+                        .requestMatchers(HttpMethod.PUT, "/api/customers/assign-hotel").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/customers/{customerId}").hasAnyRole("ADMIN", "MANAGER")
+                        .requestMatchers(HttpMethod.DELETE, "/api/customers/{customerId}").hasAnyRole("ADMIN", "MANAGER")
                         .requestMatchers("/actuator/health/**").permitAll()
-                        .requestMatchers("/actuator/**").hasRole("MANAGER")
+                        .requestMatchers("/actuator/**").hasRole("ADMIN")
                         .requestMatchers(
                                 "/my-ui.html",
                                 "/swagger-ui/**",

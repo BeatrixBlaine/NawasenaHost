@@ -13,9 +13,11 @@ spring:
               - hotel.read
               - room.read
               - payment.create
+              - payment.read
               - availability.read
               - availability.create
               - customer.read
+              - audit.write
 
         provider:
           auth-service:

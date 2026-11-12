@@ -11,6 +11,7 @@ spring:
             client-authentication-method: client_secret_basic
             scope:
               - booking.create
+              - audit.write
 
         provider:
           auth-service:

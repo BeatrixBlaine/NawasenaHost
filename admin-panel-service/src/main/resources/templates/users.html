@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html th:replace="~{fragments/layout :: layout('Users', 'users', ~{::main})}" xmlns:th="http://www.thymeleaf.org">
+<body>
+<main class="mx-auto w-full max-w-5xl px-4 py-6 sm:px-8 sm:py-10">
+
+    <div class="mb-6 flex flex-wrap items-center justify-between gap-3">
+        <div>
+            <h1 class="page-title">Users</h1>
+            <p class="mt-1 text-sm text-slate-500" th:text="${me.role == 'ADMIN'} ? 'Every user of every hotel.' : 'The front desk staff of your hotel.'"></p>
+        </div>
+        <a th:href="@{/users/new}" class="btn">Add user</a>
+    </div>
+
+    <div th:replace="~{fragments/components :: alerts}"></div>
+
+    <div class="card overflow-x-auto">
+        <table class="min-w-full divide-y divide-slate-100">
+            <thead>
+            <tr>
+                <th class="th">Username</th>
+                <th class="th hidden sm:table-cell">Email</th>
+                <th class="th">Role</th>
+                <th class="th hidden md:table-cell">Hotel</th>
+                <th class="th">Status</th>
+                <th class="th"></th>
+            </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100">
+            <tr th:each="u : ${users}" class="hover:bg-slate-50">
+                <td class="td font-semibold text-slate-900" th:text="${u.username}"></td>
+                <td class="td hidden sm:table-cell" th:text="${u.email}"></td>
+                <td class="td" th:text="${u.role}"></td>
+                <td class="td hidden md:table-cell" th:text="${u.hotelId == 0 ? 'All' : '#' + u.hotelId}"></td>
+                <td class="td"><span th:replace="~{fragments/components :: status(${u.enabled ? 'ACTIVE' : 'DISABLED'})}"></span></td>
+                <td class="td text-right"><a th:href="@{/users/{id}/edit(id=${u.authId})}" class="font-semibold text-teal-700 hover:underline">Edit</a></td>
+            </tr>
+            <tr th:if="${users != null and #lists.isEmpty(users)}">
+                <td colspan="6" class="td py-10 text-center text-slate-500">No users.</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</main>
+</body>
+</html>

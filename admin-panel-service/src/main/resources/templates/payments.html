@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html th:replace="~{fragments/layout :: layout('Payments', 'payments', ~{::main})}" xmlns:th="http://www.thymeleaf.org">
+<body>
+<main class="mx-auto w-full max-w-6xl px-4 py-6 sm:px-8 sm:py-10">
+
+    <h1 class="page-title">Payments</h1>
+    <p class="mb-6 mt-1 text-sm text-slate-500">Every payment of this hotel. Confirm a payment on the booking page.</p>
+
+    <div th:replace="~{fragments/components :: alerts}"></div>
+    <p th:if="${reportError}" th:text="${reportError}" class="alert-error mb-4"></p>
+
+    <section th:if="${report != null}" class="mb-6 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
+        <div class="card p-4 sm:p-5">
+            <p class="kpi-label">Revenue this month</p>
+            <p class="kpi-value text-xl sm:text-2xl" th:text="${currency} + ' ' + ${#numbers.formatDecimal(report.totalRevenue, 1, 'COMMA', 0, 'POINT')}"></p>
+        </div>
+        <div class="card p-4 sm:p-5">
+            <p class="kpi-label">Paid</p>
+            <p class="kpi-value" th:text="${report.successCount}"></p>
+        </div>
+        <div class="card p-4 sm:p-5">
+            <p class="kpi-label">Open</p>
+            <p class="kpi-value" th:text="${report.pendingCount}"></p>
+        </div>
+        <div class="card p-4 sm:p-5">
+            <p class="kpi-label">Refunded</p>
+            <p class="kpi-value text-xl sm:text-2xl" th:text="${currency} + ' ' + ${#numbers.formatDecimal(report.refundedAmount, 1, 'COMMA', 0, 'POINT')}"></p>
+        </div>
+    </section>
+
+    <form th:action="@{/payments}" method="get" class="mb-4 flex gap-3">
+        <select name="status" class="input sm:max-w-52">
+            <option value="">All statuses</option>
+            <option th:each="s : ${T(java.util.List).of('PENDING', 'SUCCESS', 'REFUNDED', 'CANCELLED', 'FAILED')}"
+                    th:value="${s}" th:text="${s}" th:selected="${s == status}"></option>
+        </select>
+        <button type="submit" class="btn-ghost">Filter</button>
+    </form>
+
+    <div class="card overflow-x-auto">
+        <table class="min-w-full divide-y divide-slate-100">
+            <thead>
+            <tr>
+                <th class="th">Booking</th>
+                <th class="th">Amount</th>
+                <th class="th hidden sm:table-cell">Method</th>
+                <th class="th hidden md:table-cell">Source</th>
+                <th class="th hidden md:table-cell">Paid</th>
+                <th class="th">Status</th>
+            </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100">
+            <tr th:each="p : ${payments}" class="hover:bg-slate-50">
+                <td class="td"><a th:href="@{/bookings/{id}(id=${p.bookingId})}" class="font-semibold text-teal-700 hover:underline" th:text="'#' + ${p.bookingId}"></a></td>
+                <td class="td whitespace-nowrap" th:text="${p.currency != null ? p.currency : currency} + ' ' + ${#numbers.formatDecimal(p.amount, 1, 'COMMA', 0, 'POINT')}"></td>
+                <td class="td hidden sm:table-cell" th:text="${p.paymentMethod != null ? p.paymentMethod : '–'}"></td>
+                <td class="td hidden md:table-cell" th:text="${p.paymentSource != null ? p.paymentSource : '–'}"></td>
+                <td class="td hidden whitespace-nowrap md:table-cell" th:text="${p.paidAt != null ? #temporals.format(p.paidAt, 'd MMM yyyy HH:mm') : '–'}"></td>
+                <td class="td"><span th:replace="~{fragments/components :: status(${p.paymentStatus})}"></span></td>
+            </tr>
+            <tr th:if="${payments != null and #lists.isEmpty(payments)}">
+                <td colspan="6" class="td py-10 text-center text-slate-500">No payments found.</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</main>
+</body>
+</html>

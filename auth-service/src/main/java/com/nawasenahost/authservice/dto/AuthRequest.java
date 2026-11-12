@@ -17,6 +17,9 @@ public class AuthRequest {
     @NotBlank(message = "Email is required")
     private String email;
 
+    // required for every role except ADMIN, managers always create staff in their own hotel
+    private Integer hotelId;
+
     @NotNull(message = "Role is required")
     private AuthRole role;
 
@@ -50,5 +53,13 @@ public class AuthRequest {
 
     public void setRole(AuthRole role) {
         this.role = role;
+    }
+
+    public Integer getHotelId() {
+        return hotelId;
+    }
+
+    public void setHotelId(Integer hotelId) {
+        this.hotelId = hotelId;
     }
 }

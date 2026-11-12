@@ -1,42 +1,46 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{fragments/layout :: head('Rooms')}"></head>
+<html th:replace="~{fragments/layout :: layout('Rooms', 'rooms', ~{::main})}" xmlns:th="http://www.thymeleaf.org">
 <body>
-<header th:replace="~{fragments/layout :: nav('rooms')}"></header>
+<main class="mx-auto w-full max-w-6xl px-4 py-6 sm:px-8 sm:py-10">
 
-<main class="mx-auto max-w-5xl px-6 py-10">
-
-    <div class="mb-8">
-        <h1 class="text-xl font-semibold tracking-tight">Rooms</h1>
-        <p class="mt-1 text-sm text-stone-500">All rooms of your hotel.</p>
+    <div class="mb-6 flex flex-wrap items-center justify-between gap-3">
+        <h1 class="page-title">Rooms</h1>
+        <a th:if="${me.role != 'STAFF'}" th:href="@{/rooms/new}" class="btn">Add room</a>
     </div>
 
-    <div th:replace="~{fragments/layout :: alerts}"></div>
+    <div th:replace="~{fragments/components :: alerts}"></div>
 
-    <div class="card overflow-hidden">
-        <table class="w-full">
-            <thead class="border-b border-stone-200">
+    <div class="card overflow-x-auto">
+        <table class="min-w-full divide-y divide-slate-100">
+            <thead>
             <tr>
                 <th class="th">Room</th>
                 <th class="th">Type</th>
-                <th class="th">Capacity</th>
-                <th class="th text-right">Price / night</th>
+                <th class="th hidden sm:table-cell">Guests</th>
+                <th class="th">Price / night</th>
+                <th class="th" th:if="${me.role != 'STAFF'}"></th>
             </tr>
             </thead>
-            <tbody class="divide-y divide-stone-100">
-            <tr th:each="room : ${rooms}">
-                <td class="td font-medium text-stone-900" th:text="${room.roomNumber}"></td>
+            <tbody class="divide-y divide-slate-100">
+            <tr th:each="room : ${rooms}" class="hover:bg-slate-50">
+                <td class="td font-semibold text-slate-900" th:text="${room.roomNumber}"></td>
                 <td class="td" th:text="${room.roomType}"></td>
-                <td class="td" th:text="${room.capacity} + ' guests'"></td>
-                <td class="td text-right" th:text="${#numbers.formatDecimal(room.price, 1, 'COMMA', 0, 'POINT')}"></td>
+                <td class="td hidden sm:table-cell" th:text="${room.capacity}"></td>
+                <td class="td whitespace-nowrap" th:text="${currency} + ' ' + ${#numbers.formatDecimal(room.price, 1, 'COMMA', 0, 'POINT')}"></td>
+                <td class="td whitespace-nowrap text-right" th:if="${me.role != 'STAFF'}">
+                    <a th:href="@{/rooms/{id}/edit(id=${room.roomId})}" class="font-medium text-teal-700 hover:underline">Edit</a>
+                    <form th:action="@{/rooms/{id}/delete(id=${room.roomId})}" method="post" class="ml-3 inline"
+                          onsubmit="return confirm('Delete this room?');">
+                        <button type="submit" class="cursor-pointer font-medium text-rose-700 hover:underline">Delete</button>
+                    </form>
+                </td>
             </tr>
-            <tr th:if="${rooms == null or #lists.isEmpty(rooms)}">
-                <td colspan="4" class="td py-8 text-center text-stone-400">No rooms found.</td>
+            <tr th:if="${rooms != null and #lists.isEmpty(rooms)}">
+                <td colspan="5" class="td py-10 text-center text-slate-500">No rooms yet.</td>
             </tr>
             </tbody>
         </table>
     </div>
 </main>
-
 </body>
 </html>

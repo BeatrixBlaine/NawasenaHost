@@ -6,10 +6,12 @@ import java.time.LocalDateTime;
 // payment-service serializes the id as "paymentid"
 public record PaymentResponse(int paymentid,
                               int bookingId,
+                              int hotelId,
                               BigDecimal amount,
                               String currency,
                               String paymentStatus,
                               String paymentMethod,
                               String paymentSource,
-                              LocalDateTime paidAt) {
+                              LocalDateTime paidAt,
+                              LocalDateTime refundedAt) {
 }

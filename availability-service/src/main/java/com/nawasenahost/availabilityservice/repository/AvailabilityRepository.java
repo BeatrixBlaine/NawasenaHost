@@ -14,4 +14,15 @@ public interface AvailabilityRepository extends JpaRepository<Availability, Inte
             LocalDate checkInDate,
             LocalDate checkOutDate);
 
+    List<Availability> findByRoomIdAndDateGreaterThanEqualAndDateLessThan(
+            int roomId,
+            LocalDate startDate,
+            LocalDate endDate);
+
+    List<Availability> findByRoomIdInAndStatusInAndDateGreaterThanEqualAndDateLessThanOrderByDateAsc(
+            List<Integer> roomIds,
+            List<AvailabilityStatus> statuses,
+            LocalDate startDate,
+            LocalDate endDate);
+
 }

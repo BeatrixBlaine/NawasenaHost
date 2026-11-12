@@ -1,6 +1,8 @@
 package com.nawasenahost.bookingservice.dto;
 
 import com.nawasenahost.bookingservice.entity.BookingStatus;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 import jakarta.validation.constraints.FutureOrPresent;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
@@ -28,6 +30,13 @@ public class BookingRequest {
 
     @Min(value = 1, message = "Guest count must be at least 1")
     private int guestCount;
+
+    // optional, for bookings that come from an OTA later
+    @Pattern(regexp = "^[A-Z_]{2,30}$", message = "Source must be uppercase letters, e.g. DIRECT")
+    private String source;
+
+    @Size(max = 100, message = "External reference must not exceed 100 characters")
+    private String externalReference;
 
     public @Min(value = 1, message = "User ID must be greater than 0") int getCustomerId() {
         return customerId;
@@ -75,5 +84,21 @@ public class BookingRequest {
 
     public void setGuestCount(@Min(value = 1, message = "Guest count must be at least 1") int guestCount) {
         this.guestCount = guestCount;
+    }
+
+    public String getSource() {
+        return source;
+    }
+
+    public void setSource(String source) {
+        this.source = source;
+    }
+
+    public String getExternalReference() {
+        return externalReference;
+    }
+
+    public void setExternalReference(String externalReference) {
+        this.externalReference = externalReference;
     }
 }

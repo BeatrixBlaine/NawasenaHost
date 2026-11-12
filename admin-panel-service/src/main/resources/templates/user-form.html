@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html th:replace="~{fragments/layout :: layout('User', 'users', ~{::main})}" xmlns:th="http://www.thymeleaf.org">
+<body>
+<main class="mx-auto w-full max-w-2xl px-4 py-6 sm:px-8 sm:py-10">
+
+    <a th:href="@{/users}" class="text-sm text-slate-500 hover:text-slate-900">← All users</a>
+    <h1 class="page-title mb-6 mt-4" th:text="${userId != null} ? 'Edit user' : 'Add user'"></h1>
+
+    <div th:replace="~{fragments/components :: alerts}"></div>
+
+    <form th:action="${userId != null} ? @{/users/{id}(id=${userId})} : @{/users}" th:object="${form}" method="post"
+          class="card space-y-5 p-5 sm:p-6">
+        <div class="grid gap-5 sm:grid-cols-2">
+            <div>
+                <label for="username" class="label">Username</label>
+                <input id="username" th:field="*{username}" type="text" autocomplete="off" class="input">
+                <p th:if="${#fields.hasErrors('username')}" th:errors="*{username}" class="field-error"></p>
+            </div>
+            <div>
+                <label for="email" class="label">Email</label>
+                <input id="email" th:field="*{email}" type="email" class="input">
+                <p th:if="${#fields.hasErrors('email')}" th:errors="*{email}" class="field-error"></p>
+            </div>
+            <div>
+                <label for="password" class="label" th:text="${userId != null} ? 'New password (optional)' : 'Password'"></label>
+                <input id="password" th:field="*{password}" type="password" autocomplete="new-password" class="input">
+                <p th:if="${#fields.hasErrors('password')}" th:errors="*{password}" class="field-error"></p>
+            </div>
+
+            <!-- ADMIN picks role and hotel, a MANAGER can only create STAFF of the own hotel -->
+            <div th:if="${me.role == 'ADMIN' and userId == null}">
+                <label for="role" class="label">Role</label>
+                <select id="role" th:field="*{role}" class="input">
+                    <option value="STAFF">STAFF</option>
+                    <option value="MANAGER">MANAGER</option>
+                    <option value="ADMIN">ADMIN</option>
+                </select>
+            </div>
+            <div th:if="${me.role == 'ADMIN' and userId == null}">
+                <label for="hotelId" class="label">Hotel</label>
+                <select id="hotelId" th:field="*{hotelId}" class="input">
+                    <option value="0">All hotels (ADMIN only)</option>
+                    <option th:each="hotel : ${hotels}" th:value="${hotel.id}" th:text="${hotel.name}"></option>
+                </select>
+            </div>
+
+            <div th:if="${userId != null}" class="sm:col-span-2">
+                <label class="flex items-center gap-3 text-sm font-medium text-slate-700">
+                    <input type="checkbox" th:field="*{enabled}" class="h-4 w-4 rounded border-slate-300 text-teal-600">
+                    Account is active
+                </label>
+                <p class="mt-1 text-xs text-slate-500">A disabled user cannot log in.</p>
+            </div>
+        </div>
+        <div class="flex justify-end gap-3 border-t border-slate-100 pt-5">
+            <a th:href="@{/users}" class="btn-ghost">Cancel</a>
+            <button type="submit" class="btn">Save</button>
+        </div>
+    </form>
+</main>
+</body>
+</html>

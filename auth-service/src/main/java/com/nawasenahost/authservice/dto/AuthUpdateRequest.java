@@ -14,6 +14,9 @@ public class AuthUpdateRequest {
 
     private String password;
 
+    // null keeps the current value
+    private Boolean enabled;
+
     public String getUsername() {
         return username;
     }
@@ -36,5 +39,13 @@ public class AuthUpdateRequest {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public Boolean getEnabled() {
+        return enabled;
+    }
+
+    public void setEnabled(Boolean enabled) {
+        this.enabled = enabled;
     }
 }

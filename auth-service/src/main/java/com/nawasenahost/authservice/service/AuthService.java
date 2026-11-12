@@ -10,7 +10,7 @@ import java.util.List;
 
 public interface AuthService {
 
-    List<Auth> findAll();
+    List<Auth> findAll(Integer hotelId);
     Auth findById(int id);
     LoginResponse login (LoginRequest loginRequest);
     void deleteById(int id);

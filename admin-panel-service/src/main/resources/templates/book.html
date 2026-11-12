@@ -1,23 +1,20 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{fragments/layout :: head('Guest details')}"></head>
+<html th:replace="~{fragments/layout :: layout('Guest details', 'availabilities', ~{::main})}" xmlns:th="http://www.thymeleaf.org">
 <body>
-<header th:replace="~{fragments/layout :: nav('availabilities')}"></header>
-
-<main class="mx-auto max-w-2xl px-6 py-10">
+<main class="mx-auto w-full max-w-2xl px-4 py-6 sm:px-8 sm:py-10">
 
     <a th:href="@{/availabilities(checkInDate=${form.checkInDate}, checkOutDate=${form.checkOutDate})}"
-       class="text-sm text-stone-500 hover:text-stone-900">← Back to rooms</a>
+       class="text-sm text-slate-500 hover:text-slate-900">← Back to rooms</a>
 
-    <div class="mb-8 mt-4">
-        <h1 class="text-xl font-semibold tracking-tight">Guest details</h1>
-        <p class="mt-1 text-sm text-stone-500" th:if="${room != null}"
+    <div class="mb-6 mt-4">
+        <h1 class="page-title">Guest details</h1>
+        <p class="mt-1 text-sm text-slate-500" th:if="${room != null}"
            th:text="'Room ' + ${room.roomNumber} + ' · ' + ${room.roomType} + ' · ' + ${form.checkInDate} + ' → ' + ${form.checkOutDate}"></p>
     </div>
 
-    <div th:replace="~{fragments/layout :: alerts}"></div>
+    <div th:replace="~{fragments/components :: alerts}"></div>
 
-    <form th:if="${room != null}" th:action="@{/create-booking}" th:object="${form}" method="post" class="card space-y-5 p-6">
+    <form th:if="${room != null}" th:action="@{/create-booking}" th:object="${form}" method="post" class="card space-y-5 p-5 sm:p-6">
 
         <input type="hidden" th:field="*{roomId}">
         <input type="hidden" th:field="*{checkInDate}">
@@ -27,35 +24,34 @@
             <div>
                 <label for="firstName" class="label">First name</label>
                 <input id="firstName" th:field="*{firstName}" type="text" class="input">
-                <p th:if="${#fields.hasErrors('firstName')}" th:errors="*{firstName}" class="mt-1 text-xs text-red-700"></p>
+                <p th:if="${#fields.hasErrors('firstName')}" th:errors="*{firstName}" class="field-error"></p>
             </div>
             <div>
                 <label for="lastName" class="label">Last name</label>
                 <input id="lastName" th:field="*{lastName}" type="text" class="input">
-                <p th:if="${#fields.hasErrors('lastName')}" th:errors="*{lastName}" class="mt-1 text-xs text-red-700"></p>
+                <p th:if="${#fields.hasErrors('lastName')}" th:errors="*{lastName}" class="field-error"></p>
             </div>
             <div>
                 <label for="email" class="label">Email</label>
                 <input id="email" th:field="*{email}" type="email" class="input">
-                <p th:if="${#fields.hasErrors('email')}" th:errors="*{email}" class="mt-1 text-xs text-red-700"></p>
+                <p th:if="${#fields.hasErrors('email')}" th:errors="*{email}" class="field-error"></p>
             </div>
             <div>
                 <label for="phone" class="label">Phone</label>
                 <input id="phone" th:field="*{phone}" type="tel" class="input">
-                <p th:if="${#fields.hasErrors('phone')}" th:errors="*{phone}" class="mt-1 text-xs text-red-700"></p>
+                <p th:if="${#fields.hasErrors('phone')}" th:errors="*{phone}" class="field-error"></p>
             </div>
             <div>
                 <label for="guestCount" class="label">Guests</label>
                 <input id="guestCount" th:field="*{guestCount}" type="number" min="1" th:max="${room.capacity}" class="input">
-                <p th:if="${#fields.hasErrors('guestCount')}" th:errors="*{guestCount}" class="mt-1 text-xs text-red-700"></p>
+                <p th:if="${#fields.hasErrors('guestCount')}" th:errors="*{guestCount}" class="field-error"></p>
             </div>
         </div>
 
-        <div class="flex justify-end border-t border-stone-100 pt-5">
-            <button type="submit" class="btn">Create booking</button>
+        <div class="flex justify-end border-t border-slate-100 pt-5">
+            <button type="submit" class="btn w-full sm:w-auto">Create booking</button>
         </div>
     </form>
 </main>
-
 </body>
 </html>

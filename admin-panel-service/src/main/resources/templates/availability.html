@@ -1,59 +1,45 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{fragments/layout :: head('New booking')}"></head>
+<html th:replace="~{fragments/layout :: layout('New booking', 'availabilities', ~{::main})}" xmlns:th="http://www.thymeleaf.org">
 <body>
-<header th:replace="~{fragments/layout :: nav('availabilities')}"></header>
+<main class="mx-auto w-full max-w-4xl px-4 py-6 sm:px-8 sm:py-10">
 
-<main class="mx-auto max-w-5xl px-6 py-10">
+    <h1 class="page-title">New booking</h1>
+    <p class="mb-6 mt-1 text-sm text-slate-500">Pick the dates first, then choose one of the free rooms.</p>
 
-    <div class="mb-8">
-        <h1 class="text-xl font-semibold tracking-tight">New booking</h1>
-        <p class="mt-1 text-sm text-stone-500">Pick the dates, then choose a free room.</p>
-    </div>
+    <div th:replace="~{fragments/components :: alerts}"></div>
 
-    <div th:replace="~{fragments/layout :: alerts}"></div>
-
-    <form th:action="@{/availabilities}" method="get" class="card mb-8 flex flex-wrap items-end gap-4 p-5">
+    <form th:action="@{/availabilities}" method="get" class="card grid gap-4 p-5 sm:grid-cols-[1fr_1fr_auto] sm:items-end">
         <div>
             <label for="checkInDate" class="label">Check-in</label>
-            <input id="checkInDate" name="checkInDate" type="date" required th:value="${checkInDate}" class="input">
+            <input id="checkInDate" name="checkInDate" type="date" th:value="${checkInDate}" th:min="${today}" required class="input">
         </div>
         <div>
             <label for="checkOutDate" class="label">Check-out</label>
-            <input id="checkOutDate" name="checkOutDate" type="date" required th:value="${checkOutDate}" class="input">
+            <input id="checkOutDate" name="checkOutDate" type="date" th:value="${checkOutDate}" th:min="${today}" required class="input">
         </div>
         <button type="submit" class="btn">Search rooms</button>
     </form>
 
-    <div th:if="${searched}" class="card overflow-hidden">
-        <table class="w-full">
-            <thead class="border-b border-stone-200">
-            <tr>
-                <th class="th">Room</th>
-                <th class="th">Type</th>
-                <th class="th">Capacity</th>
-                <th class="th text-right">Price / night</th>
-                <th class="th"></th>
-            </tr>
-            </thead>
-            <tbody class="divide-y divide-stone-100">
-            <tr th:each="room : ${rooms}">
-                <td class="td font-medium text-stone-900" th:text="${room.roomNumber}"></td>
-                <td class="td" th:text="${room.roomType}"></td>
-                <td class="td" th:text="${room.capacity} + ' guests'"></td>
-                <td class="td text-right" th:text="${#numbers.formatDecimal(room.price, 1, 'COMMA', 0, 'POINT')}"></td>
-                <td class="td text-right">
-                    <a th:href="@{/booking-page(roomId=${room.roomId}, checkInDate=${checkInDate}, checkOutDate=${checkOutDate})}"
-                       class="btn-ghost">Book</a>
-                </td>
-            </tr>
-            <tr th:if="${#lists.isEmpty(rooms)}">
-                <td colspan="5" class="td py-8 text-center text-stone-400">No room is available for these dates.</td>
-            </tr>
-            </tbody>
-        </table>
-    </div>
-</main>
+    <section th:if="${searched}" class="mt-8">
+        <h2 class="mb-3 text-sm font-semibold text-slate-900" th:text="${#lists.size(rooms)} + ' rooms available'"></h2>
 
+        <div class="grid gap-3 sm:grid-cols-2">
+            <article th:each="room : ${rooms}" class="card flex flex-col justify-between p-5">
+                <div>
+                    <div class="flex items-start justify-between gap-3">
+                        <h3 class="font-display font-semibold text-slate-900" th:text="'Room ' + ${room.roomNumber}"></h3>
+                        <p class="text-sm font-semibold text-teal-700" th:text="${currency} + ' ' + ${#numbers.formatDecimal(room.price, 1, 'COMMA', 0, 'POINT')}"></p>
+                    </div>
+                    <p class="mt-1 text-sm text-slate-500" th:text="${room.roomType} + ' · up to ' + ${room.capacity} + ' guests'"></p>
+                    <p class="mt-2 text-sm text-slate-600" th:if="${room.description != null}" th:text="${room.description}"></p>
+                </div>
+                <a th:href="@{/booking-page(roomId=${room.roomId}, checkInDate=${checkInDate}, checkOutDate=${checkOutDate})}" class="btn mt-4">Book this room</a>
+            </article>
+        </div>
+
+        <p th:if="${#lists.isEmpty(rooms)}" class="card p-8 text-center text-sm text-slate-500">
+            No room is free on these dates. Try other dates.</p>
+    </section>
+</main>
 </body>
 </html>

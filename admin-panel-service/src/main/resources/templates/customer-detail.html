@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html th:replace="~{fragments/layout :: layout('Customer', 'customers', ~{::main})}" xmlns:th="http://www.thymeleaf.org">
+<body>
+<main class="mx-auto w-full max-w-3xl px-4 py-6 sm:px-8 sm:py-10">
+
+    <a th:href="@{/customers}" class="text-sm text-slate-500 hover:text-slate-900">← All customers</a>
+    <h1 class="page-title mb-6 mt-4" th:text="${customer.firstName} + ' ' + ${customer.lastName}"></h1>
+
+    <div th:replace="~{fragments/components :: alerts}"></div>
+
+    <form th:if="${me.role != 'STAFF'}" th:action="@{/customers/{id}(id=${customer.customerId})}" th:object="${form}" method="post"
+          class="card space-y-5 p-5 sm:p-6">
+        <div class="grid gap-5 sm:grid-cols-2">
+            <div>
+                <label for="firstName" class="label">First name</label>
+                <input id="firstName" th:field="*{firstName}" type="text" class="input">
+                <p th:if="${#fields.hasErrors('firstName')}" th:errors="*{firstName}" class="field-error"></p>
+            </div>
+            <div>
+                <label for="lastName" class="label">Last name</label>
+                <input id="lastName" th:field="*{lastName}" type="text" class="input">
+                <p th:if="${#fields.hasErrors('lastName')}" th:errors="*{lastName}" class="field-error"></p>
+            </div>
+            <div>
+                <label for="email" class="label">Email</label>
+                <input id="email" th:field="*{email}" type="email" class="input">
+                <p th:if="${#fields.hasErrors('email')}" th:errors="*{email}" class="field-error"></p>
+            </div>
+            <div>
+                <label for="phone" class="label">Phone</label>
+                <input id="phone" th:field="*{phone}" type="tel" class="input">
+                <p th:if="${#fields.hasErrors('phone')}" th:errors="*{phone}" class="field-error"></p>
+            </div>
+        </div>
+        <div class="flex justify-end border-t border-slate-100 pt-5">
+            <button type="submit" class="btn">Save</button>
+        </div>
+    </form>
+
+    <section th:if="${me.role == 'STAFF'}" class="card divide-y divide-slate-100">
+        <div class="flex justify-between px-5 py-3 text-sm"><span class="text-slate-500">Email</span><span th:text="${customer.email}"></span></div>
+        <div class="flex justify-between px-5 py-3 text-sm"><span class="text-slate-500">Phone</span><span th:text="${customer.phone}"></span></div>
+    </section>
+
+    <h2 class="mb-3 mt-8 text-sm font-semibold text-slate-900">Bookings</h2>
+    <p th:if="${bookingError}" th:text="${bookingError}" class="alert-error"></p>
+    <div class="card overflow-x-auto" th:if="${bookings != null}">
+        <table class="min-w-full divide-y divide-slate-100">
+            <thead><tr><th class="th">No.</th><th class="th">Stay</th><th class="th">Status</th></tr></thead>
+            <tbody class="divide-y divide-slate-100">
+            <tr th:each="b : ${bookings}" class="hover:bg-slate-50">
+                <td class="td"><a th:href="@{/bookings/{id}(id=${b.bookingId})}" class="font-semibold text-teal-700 hover:underline" th:text="'#' + ${b.bookingId}"></a></td>
+                <td class="td whitespace-nowrap" th:text="${#temporals.format(b.checkInDate, 'd MMM')} + ' → ' + ${#temporals.format(b.checkOutDate, 'd MMM yyyy')}"></td>
+                <td class="td"><span th:replace="~{fragments/components :: status(${b.status})}"></span></td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(bookings)}"><td colspan="3" class="td py-8 text-center text-slate-500">No bookings.</td></tr>
+            </tbody>
+        </table>
+    </div>
+</main>
+</body>
+</html>

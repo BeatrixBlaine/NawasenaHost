@@ -2,7 +2,9 @@ package com.nawasenahost.adminpanel.controller;
 
 import com.nawasenahost.adminpanel.dto.SessionData;
 import com.nawasenahost.adminpanel.exception.ApiException;
+import com.nawasenahost.adminpanel.dto.HotelResponse;
 import com.nawasenahost.adminpanel.service.AuthService;
+import com.nawasenahost.adminpanel.service.HotelService;
 import com.nawasenahost.adminpanel.service.SessionService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -27,10 +29,13 @@ public class LoginController {
     private final AuthService authService;
     private final SessionService sessionService;
     private final SecurityContextRepository securityContextRepository;
+    private final HotelService hotelService;
 
     public LoginController(AuthService authService,
                            SessionService sessionService,
-                           SecurityContextRepository securityContextRepository) {
+                           SecurityContextRepository securityContextRepository,
+                           HotelService hotelService) {
+        this.hotelService = hotelService;
         this.authService = authService;
         this.sessionService = sessionService;
         this.securityContextRepository = securityContextRepository;
@@ -55,6 +60,8 @@ public class LoginController {
 
         try {
             SessionData sessionData = authService.login(username, password);
+
+            sessionData = withHotelName(sessionData);
 
             // new session id after login, against session fixation
             request.getSession(true);
@@ -81,6 +88,29 @@ public class LoginController {
         } catch (JwtException e) {
             model.addAttribute("error", "Invalid or expired authentication token. Please log in again.");
             return "login";
+        }
+    }
+
+    // the hotel name is shown in the top bar, an ADMIN starts in the first hotel
+    private SessionData withHotelName(SessionData sessionData) {
+
+        try {
+            if ("ADMIN".equals(sessionData.role()) && sessionData.hotelId() == 0) {
+                List<HotelResponse> hotels = hotelService.findAll(sessionData);
+
+                if (!hotels.isEmpty()) {
+                    return sessionData.withHotel(hotels.get(0).id(), hotels.get(0).name());
+                }
+
+                return sessionData;
+            }
+
+            HotelResponse hotel = hotelService.findById(sessionData, sessionData.hotelId());
+
+            return sessionData.withHotel(hotel.id(), hotel.name());
+        } catch (ApiException e) {
+            // the name is a nice to have, logging in still works without it
+            return sessionData;
         }
     }
 }

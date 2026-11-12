@@ -1,72 +1,208 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{fragments/layout :: head('Dashboard')}"></head>
+<html th:replace="~{fragments/layout :: layout('Dashboard', 'dashboard', ~{::main})}" xmlns:th="http://www.thymeleaf.org">
 <body>
-<header th:replace="~{fragments/layout :: nav('dashboard')}"></header>
+<main class="mx-auto w-full max-w-6xl px-4 py-6 sm:px-8 sm:py-10">
 
-<main class="mx-auto max-w-5xl px-6 py-10">
-
-    <div class="mb-8 flex items-end justify-between">
+    <div class="mb-6 flex flex-wrap items-end justify-between gap-4">
         <div>
-            <h1 class="text-xl font-semibold tracking-tight">Dashboard</h1>
-            <p class="mt-1 text-sm text-stone-500">Tonight at a glance.</p>
+            <h1 class="page-title">Dashboard</h1>
+            <p class="mt-1 text-sm text-slate-500" th:text="${me.hotelName != null ? me.hotelName : 'Your hotel'}"></p>
         </div>
-        <a th:href="@{/availabilities}" class="btn">New booking</a>
+        <div th:unless="${noHotel}" class="inline-flex rounded-lg border border-slate-200 bg-white p-1 text-sm font-medium">
+            <a th:each="r : ${T(java.util.List).of(7, 30, 90)}" th:href="@{/dashboard(range=${r})}" th:text="${r} + ' days'"
+               th:classappend="${range == r} ? 'bg-teal-600 text-white' : 'text-slate-600 hover:bg-slate-100'"
+               class="rounded-md px-3 py-1.5"></a>
+        </div>
     </div>
 
-    <p th:if="${roomError}" th:text="${roomError}" class="mb-4 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800"></p>
-    <p th:if="${bookingError}" th:text="${bookingError}" class="mb-4 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800"></p>
+    <div th:replace="~{fragments/components :: alerts}"></div>
 
-    <section class="grid grid-cols-2 gap-4 md:grid-cols-4">
-        <div class="card p-5">
-            <p class="label">Rooms</p>
-            <p class="text-2xl font-semibold" th:text="${totalRooms != null} ? ${totalRooms} : '–'">–</p>
-        </div>
-        <div class="card p-5">
-            <p class="label">Occupied tonight</p>
-            <p class="text-2xl font-semibold" th:text="${occupiedTonight != null} ? ${occupiedTonight} : '–'">–</p>
-        </div>
-        <div class="card p-5">
-            <p class="label">Pending</p>
-            <p class="text-2xl font-semibold" th:text="${pendingBookings != null} ? ${pendingBookings} : '–'">–</p>
-        </div>
-        <div class="card p-5">
-            <p class="label">Confirmed</p>
-            <p class="text-2xl font-semibold" th:text="${confirmedBookings != null} ? ${confirmedBookings} : '–'">–</p>
-        </div>
-    </section>
+    <div th:if="${noHotel}" class="card p-8 text-center">
+        <h2 class="font-display text-lg font-semibold text-slate-900">No hotel yet</h2>
+        <p class="mt-2 text-sm text-slate-500">Create the first hotel to start with rooms, bookings and reports.</p>
+        <a th:href="@{/hotels/new}" class="btn mt-6">Create hotel</a>
+    </div>
 
-    <section class="mt-10">
-        <div class="mb-3 flex items-center justify-between">
-            <h2 class="text-sm font-medium">Recent bookings</h2>
-            <a th:href="@{/bookings}" class="text-sm text-stone-500 hover:text-stone-900">View all</a>
-        </div>
+    <th:block th:unless="${noHotel}">
 
-        <div class="card overflow-hidden">
-            <table class="w-full">
-                <thead class="border-b border-stone-200">
-                <tr>
-                    <th class="th">#</th>
-                    <th class="th">Room</th>
-                    <th class="th">Stay</th>
-                    <th class="th">Status</th>
-                </tr>
-                </thead>
-                <tbody class="divide-y divide-stone-100">
-                <tr th:each="booking : ${recentBookings}">
-                    <td class="td"><a th:href="@{/bookings/{id}(id=${booking.bookingId})}" class="font-medium text-stone-900 hover:underline" th:text="${booking.bookingId}"></a></td>
-                    <td class="td" th:text="${booking.roomId}"></td>
-                    <td class="td" th:text="${booking.checkInDate} + ' → ' + ${booking.checkOutDate}"></td>
-                    <td class="td"><span th:replace="~{fragments/layout :: status(${booking.status})}"></span></td>
-                </tr>
-                <tr th:if="${recentBookings == null or #lists.isEmpty(recentBookings)}">
-                    <td colspan="4" class="td py-8 text-center text-stone-400">No bookings yet.</td>
-                </tr>
-                </tbody>
-            </table>
-        </div>
-    </section>
+        <p th:if="${paymentError}" th:text="${paymentError}" class="alert-error mb-3"></p>
+        <p th:if="${bookingError}" th:text="${bookingError}" class="alert-error mb-3"></p>
+        <p th:if="${occupancyError}" th:text="${occupancyError}" class="alert-error mb-3"></p>
+
+        <!-- numbers -->
+        <section class="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
+            <div class="card p-4 sm:p-5">
+                <p class="kpi-label">Revenue</p>
+                <p class="kpi-value text-xl sm:text-2xl" th:if="${paymentReport != null}"
+                   th:text="${currency} + ' ' + ${#numbers.formatDecimal(paymentReport.totalRevenue, 1, 'COMMA', 0, 'POINT')}">0</p>
+                <p class="kpi-value" th:if="${paymentReport == null}">–</p>
+                <p class="mt-1 text-xs text-slate-500" th:text="'last ' + ${range} + ' days'"></p>
+            </div>
+            <div class="card p-4 sm:p-5">
+                <p class="kpi-label">Bookings</p>
+                <p class="kpi-value" th:text="${bookingReport != null} ? ${bookingReport.totalBookings} : '–'">0</p>
+                <p class="mt-1 text-xs text-slate-500" th:text="'last ' + ${range} + ' days'"></p>
+            </div>
+            <div class="card p-4 sm:p-5">
+                <p class="kpi-label">Occupancy today</p>
+                <p class="kpi-value" th:text="${occupancy != null} ? ${occupancy.todayRate} + '%' : '–'">0%</p>
+                <p class="mt-1 text-xs text-slate-500" th:if="${occupancy != null}"
+                   th:text="'next 30 days: ' + ${occupancy.averageRate} + '%'"></p>
+            </div>
+            <div class="card p-4 sm:p-5">
+                <p class="kpi-label">Waiting for payment</p>
+                <p class="kpi-value" th:text="${pendingBookings != null} ? ${pendingBookings} : '–'">0</p>
+                <a th:href="@{/bookings(status='PENDING')}" class="mt-1 inline-block text-xs font-medium text-teal-700 hover:underline">View</a>
+            </div>
+            <div class="card p-4 sm:p-5">
+                <p class="kpi-label">Arrivals today</p>
+                <p class="kpi-value" th:text="${bookingReport != null} ? ${bookingReport.arrivalsToday} : '–'">0</p>
+            </div>
+            <div class="card p-4 sm:p-5">
+                <p class="kpi-label">Departures today</p>
+                <p class="kpi-value" th:text="${bookingReport != null} ? ${bookingReport.departuresToday} : '–'">0</p>
+            </div>
+            <div class="card p-4 sm:p-5">
+                <p class="kpi-label">Average payment</p>
+                <p class="kpi-value text-xl sm:text-2xl" th:if="${paymentReport != null}"
+                   th:text="${currency} + ' ' + ${#numbers.formatDecimal(paymentReport.averagePayment, 1, 'COMMA', 0, 'POINT')}">0</p>
+                <p class="kpi-value" th:if="${paymentReport == null}">–</p>
+            </div>
+            <div class="card p-4 sm:p-5">
+                <p class="kpi-label">Refunded</p>
+                <p class="kpi-value text-xl sm:text-2xl" th:if="${paymentReport != null}"
+                   th:text="${currency} + ' ' + ${#numbers.formatDecimal(paymentReport.refundedAmount, 1, 'COMMA', 0, 'POINT')}">0</p>
+                <p class="kpi-value" th:if="${paymentReport == null}">–</p>
+            </div>
+        </section>
+
+        <!-- charts -->
+        <section class="mt-6 grid gap-4 lg:grid-cols-2">
+            <div class="card p-4 sm:p-5">
+                <h2 class="text-sm font-semibold text-slate-900">Revenue per day</h2>
+                <div class="relative mt-4 h-56 sm:h-64"><canvas id="revenueChart"></canvas></div>
+            </div>
+            <div class="card p-4 sm:p-5">
+                <h2 class="text-sm font-semibold text-slate-900">Occupancy, next 30 days</h2>
+                <div class="relative mt-4 h-56 sm:h-64"><canvas id="occupancyChart"></canvas></div>
+            </div>
+            <div class="card p-4 sm:p-5">
+                <h2 class="text-sm font-semibold text-slate-900">Check-ins per day</h2>
+                <div class="relative mt-4 h-56 sm:h-64"><canvas id="checkInChart"></canvas></div>
+            </div>
+            <div class="grid gap-4 sm:grid-cols-3 lg:grid-cols-1 xl:grid-cols-3">
+                <div class="card p-4 sm:p-5">
+                    <h2 class="text-sm font-semibold text-slate-900">By status</h2>
+                    <div class="relative mt-4 h-40"><canvas id="statusChart"></canvas></div>
+                </div>
+                <div class="card p-4 sm:p-5">
+                    <h2 class="text-sm font-semibold text-slate-900">By source</h2>
+                    <div class="relative mt-4 h-40"><canvas id="sourceChart"></canvas></div>
+                </div>
+                <div class="card p-4 sm:p-5">
+                    <h2 class="text-sm font-semibold text-slate-900">Payment method</h2>
+                    <div class="relative mt-4 h-40"><canvas id="methodChart"></canvas></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- latest bookings -->
+        <section class="mt-6">
+            <div class="mb-3 flex items-center justify-between">
+                <h2 class="text-sm font-semibold text-slate-900">Latest bookings</h2>
+                <a th:href="@{/bookings}" class="text-sm font-medium text-teal-700 hover:underline">All bookings</a>
+            </div>
+            <p th:if="${recentError}" th:text="${recentError}" class="alert-error"></p>
+            <div class="card overflow-x-auto" th:if="${recentBookings != null}">
+                <table class="min-w-full divide-y divide-slate-100">
+                    <thead><tr>
+                        <th class="th">No.</th><th class="th">Stay</th><th class="th hidden sm:table-cell">Source</th><th class="th">Status</th>
+                    </tr></thead>
+                    <tbody class="divide-y divide-slate-100">
+                    <tr th:each="b : ${recentBookings}" class="hover:bg-slate-50">
+                        <td class="td"><a th:href="@{/bookings/{id}(id=${b.bookingId})}" class="font-semibold text-teal-700 hover:underline" th:text="'#' + ${b.bookingId}"></a></td>
+                        <td class="td" th:text="${#temporals.format(b.checkInDate, 'd MMM')} + ' → ' + ${#temporals.format(b.checkOutDate, 'd MMM yyyy')}"></td>
+                        <td class="td hidden sm:table-cell" th:text="${b.source}"></td>
+                        <td class="td"><span th:replace="~{fragments/components :: status(${b.status})}"></span></td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(recentBookings)}"><td colspan="4" class="td text-center text-slate-500">No bookings yet.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+        <script th:inline="javascript">
+            document.addEventListener('DOMContentLoaded', function () {
+                var data = {
+                    revenue: [[${revenueLabels}]], revenueValues: [[${revenueValues}]],
+                    occupancy: [[${occupancyLabels}]], occupancyValues: [[${occupancyValues}]],
+                    checkIn: [[${checkInLabels}]], checkInValues: [[${checkInValues}]],
+                    status: [[${statusLabels}]], statusValues: [[${statusValues}]],
+                    source: [[${sourceLabels}]], sourceValues: [[${sourceValues}]],
+                    method: [[${methodLabels}]], methodValues: [[${methodValues}]]
+                };
+
+                if (typeof Chart === 'undefined') { return; }
+
+                var teal = '#0d9488', sky = '#0284c7', amber = '#d97706', rose = '#e11d48', violet = '#7c3aed', slate = '#94a3b8';
+                var palette = [teal, sky, amber, violet, rose, slate];
+                Chart.defaults.font.family = '"Plus Jakarta Sans", system-ui, sans-serif';
+                Chart.defaults.color = '#64748b';
+
+                function empty(values) {
+                    return !values || values.length === 0 || values.every(function (v) { return !v; });
+                }
+
+                function draw(id, config, values) {
+                    var canvas = document.getElementById(id);
+                    if (!canvas) { return; }
+                    if (empty(values)) {
+                        canvas.parentElement.innerHTML = '<p class="flex h-full items-center justify-center text-sm text-slate-400">No data yet</p>';
+                        return;
+                    }
+                    new Chart(canvas, config);
+                }
+
+                var axes = {
+                    x: { grid: { display: false }, ticks: { maxTicksLimit: 8 } },
+                    y: { beginAtZero: true, grid: { color: '#f1f5f9' } }
+                };
+
+                draw('revenueChart', {
+                    type: 'line',
+                    data: { labels: data.revenue, datasets: [{ data: data.revenueValues, borderColor: teal, backgroundColor: 'rgba(13,148,136,0.1)', fill: true, tension: 0.3, pointRadius: 0 }] },
+                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: axes }
+                }, data.revenueValues);
+
+                draw('occupancyChart', {
+                    type: 'bar',
+                    data: { labels: data.occupancy, datasets: [{ data: data.occupancyValues, backgroundColor: sky, borderRadius: 4 }] },
+                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
+                        scales: { x: axes.x, y: { beginAtZero: true, max: 100, grid: { color: '#f1f5f9' }, ticks: { callback: function (v) { return v + '%'; } } } } }
+                }, data.occupancyValues);
+
+                draw('checkInChart', {
+                    type: 'bar',
+                    data: { labels: data.checkIn, datasets: [{ data: data.checkInValues, backgroundColor: teal, borderRadius: 4 }] },
+                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
+                        scales: { x: axes.x, y: { beginAtZero: true, grid: { color: '#f1f5f9' }, ticks: { precision: 0 } } } }
+                }, data.checkInValues);
+
+                function doughnut(id, labels, values) {
+                    draw(id, {
+                        type: 'doughnut',
+                        data: { labels: labels, datasets: [{ data: values, backgroundColor: palette, borderWidth: 0 }] },
+                        options: { responsive: true, maintainAspectRatio: false, cutout: '62%', plugins: { legend: { position: 'bottom', labels: { boxWidth: 8, usePointStyle: true, font: { size: 10 } } } } }
+                    }, values);
+                }
+
+                doughnut('statusChart', data.status, data.statusValues);
+                doughnut('sourceChart', data.source, data.sourceValues);
+                doughnut('methodChart', data.method, data.methodValues);
+            });
+        </script>
+    </th:block>
 </main>
-
 </body>
 </html>

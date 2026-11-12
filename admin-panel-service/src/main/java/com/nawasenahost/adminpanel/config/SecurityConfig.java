@@ -3,6 +3,7 @@ package com.nawasenahost.adminpanel.config;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
@@ -54,6 +55,13 @@ public class SecurityConfig {
                                 "/js/**",
                                 "/images/**"
                         ).permitAll()
+                        // ADMIN: everything, MANAGER: the assigned hotel, STAFF: front desk
+                        // the backend services check the role again, this only hides the pages
+                        .requestMatchers("/hotels/**", "/switch-hotel").hasRole("ADMIN")
+                        .requestMatchers("/users/**", "/audit-logs/**", "/payments/**").hasAnyRole("ADMIN", "MANAGER")
+                        .requestMatchers("/inventory/block", "/inventory/unblock").hasAnyRole("ADMIN", "MANAGER")
+                        .requestMatchers(HttpMethod.POST, "/rooms/**").hasAnyRole("ADMIN", "MANAGER")
+                        .requestMatchers("/rooms/new", "/rooms/*/edit").hasAnyRole("ADMIN", "MANAGER")
                         .anyRequest().authenticated()
                 )
                 .securityContext(context -> context

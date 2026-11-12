@@ -12,10 +12,13 @@ import java.util.List;
 public interface CustomerService {
 
     List<Customer> findAll();
+    List<Customer> findByHotelId(int hotelId, String q);
     Customer findById(int id);
     Customer save(CustomerData customerData);
     void deleteById(int id);
     Customer update(int id, CustomerData customerData);
+
+    int assignHotel(int hotelId);
 
     BookingResponse createNewBooking(@Valid BookingRequest bookingRequest);
 }

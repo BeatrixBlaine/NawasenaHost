@@ -7,5 +7,6 @@ public interface SessionService {
 
     void save(HttpSession session, SessionData sessionData);
     SessionData get(HttpSession session);
+    SessionData find(HttpSession session);
 
 }

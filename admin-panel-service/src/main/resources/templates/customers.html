@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html th:replace="~{fragments/layout :: layout('Customers', 'customers', ~{::main})}" xmlns:th="http://www.thymeleaf.org">
+<body>
+<main class="mx-auto w-full max-w-5xl px-4 py-6 sm:px-8 sm:py-10">
+
+    <h1 class="page-title mb-6">Customers</h1>
+
+    <div th:replace="~{fragments/components :: alerts}"></div>
+
+    <form th:action="@{/customers}" method="get" class="mb-4 flex gap-3">
+        <input type="search" name="q" th:value="${q}" placeholder="Search name, email or phone" class="input">
+        <button type="submit" class="btn-ghost">Search</button>
+    </form>
+
+    <div class="card overflow-x-auto">
+        <table class="min-w-full divide-y divide-slate-100">
+            <thead>
+            <tr>
+                <th class="th">Name</th>
+                <th class="th hidden sm:table-cell">Email</th>
+                <th class="th">Phone</th>
+                <th class="th hidden md:table-cell">Since</th>
+            </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100">
+            <tr th:each="c : ${customers}" class="hover:bg-slate-50">
+                <td class="td"><a th:href="@{/customers/{id}(id=${c.customerId})}" class="font-semibold text-teal-700 hover:underline" th:text="${c.firstName} + ' ' + ${c.lastName}"></a></td>
+                <td class="td hidden sm:table-cell" th:text="${c.email}"></td>
+                <td class="td whitespace-nowrap" th:text="${c.phone}"></td>
+                <td class="td hidden md:table-cell" th:text="${c.createdAt != null ? #temporals.format(c.createdAt, 'd MMM yyyy') : '–'}"></td>
+            </tr>
+            <tr th:if="${customers != null and #lists.isEmpty(customers)}">
+                <td colspan="4" class="td py-10 text-center text-slate-500">No customers found.</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</main>
+</body>
+</html>

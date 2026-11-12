@@ -3,8 +3,10 @@ package com.nawasenahost.customerservice.entity;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 
+import java.time.LocalDateTime;
+
 @Entity
-@Table(name = "customer")
+@Table(name = "customer", indexes = @Index(name = "idx_customer_hotel", columnList = "hotel_id"))
 public class Customer {
 
     @Id
@@ -24,6 +26,13 @@ public class Customer {
 
     @Column(name = "phone")
     private String phone;
+
+    // hotel where the customer first booked, 0 for customers created before multi hotel support
+    @Column(name = "hotel_id", columnDefinition = "int default 0")
+    private int hotelId;
+
+    @Column(name = "created_at")
+    private LocalDateTime createdAt;
 
     public Customer(){}
 
@@ -72,6 +81,22 @@ public class Customer {
 
     public void setPhone(String phone) {
         this.phone = phone;
+    }
+
+    public int getHotelId() {
+        return hotelId;
+    }
+
+    public void setHotelId(int hotelId) {
+        this.hotelId = hotelId;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
     }
 
     @Override

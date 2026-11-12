@@ -9,14 +9,15 @@ import org.springframework.stereotype.Component;
 
 /**
  * Multi-tenant guard.
- * - Hotel staff tokens (HS256, carry a "role" claim) may only touch their own hotel.
+ * - ADMIN (role claim) can access every hotel.
+ * - MANAGER and STAFF (role claim) can only access the hotel in their hotelId claim.
  * - Service tokens (RS256, client credentials, no "role" claim) are trusted and bypass the check,
  *   because the user-facing service that received the original request already checked the tenant.
  */
 @Component
 public class TenantGuard {
 
-    public void assertHotel(int hotelId) {
+    private Jwt currentJwt() {
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
@@ -24,10 +25,16 @@ public class TenantGuard {
             throw new AccessDeniedException("Access denied");
         }
 
-        Jwt jwt = jwtAuthentication.getToken();
+        return jwtAuthentication.getToken();
+    }
+
+    public void assertHotel(int hotelId) {
+
+        Jwt jwt = currentJwt();
+        String role = jwt.getClaimAsString("role");
 
         // service-to-service call (client credentials), no user behind it
-        if (jwt.getClaimAsString("role") == null) {
+        if (role == null || "ADMIN".equals(role)) {
             return;
         }
 
@@ -39,22 +46,55 @@ public class TenantGuard {
     }
 
     public boolean isServiceCall() {
-
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
-        return authentication instanceof JwtAuthenticationToken jwtAuthentication
-                && jwtAuthentication.getToken().getClaimAsString("role") == null;
+        return currentJwt().getClaimAsString("role") == null;
     }
 
+    public boolean isAdmin() {
+        return "ADMIN".equals(currentJwt().getClaimAsString("role"));
+    }
+
+    // only manager and admin may continue, staff and anonymous users are refused (service calls pass)
+    public void assertManagerOrAdmin() {
+
+        String role = currentJwt().getClaimAsString("role");
+
+        if (role != null && !"ADMIN".equals(role) && !"MANAGER".equals(role)) {
+            throw new AccessDeniedException("Only managers and admins can do this");
+        }
+    }
+
+    // hotel of the current user, ADMIN has no hotel so the requested hotel is used
     public int currentHotelId() {
 
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        Object tokenHotelId = currentJwt().getClaim("hotelId");
 
-        if (authentication instanceof JwtAuthenticationToken jwtAuthentication
-                && jwtAuthentication.getToken().getClaim("hotelId") instanceof Number number) {
+        if (tokenHotelId instanceof Number number) {
             return number.intValue();
         }
 
         throw new AccessDeniedException("Access denied");
+    }
+
+    public String currentUsername() {
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication instanceof JwtAuthenticationToken jwtAuthentication) {
+            return jwtAuthentication.getToken().getSubject();
+        }
+
+        return "unknown";
+    }
+
+    public String currentRole() {
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication instanceof JwtAuthenticationToken jwtAuthentication) {
+            String role = jwtAuthentication.getToken().getClaimAsString("role");
+            return role == null ? "SERVICE" : role;
+        }
+
+        return "UNKNOWN";
     }
 }

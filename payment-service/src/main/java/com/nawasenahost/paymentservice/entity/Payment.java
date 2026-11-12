@@ -6,13 +6,19 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "payment")
+@Table(name = "payment",
+        uniqueConstraints = @UniqueConstraint(name = "uk_payment_booking", columnNames = "bookingId"),
+        indexes = @Index(name = "idx_payment_hotel_paid", columnList = "hotelId, paidAt"))
 public class Payment {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int paymentid;
     private int bookingId;
+
+    // hotel of the booking, makes payments of one hotel easy to list and sum
+    @Column(columnDefinition = "int default 0")
+    private int hotelId;
     private BigDecimal amount;
     private String currency;
 
@@ -31,6 +37,12 @@ public class Payment {
     private LocalDateTime paidAt;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private LocalDateTime refundedAt;
+
+    // optimistic locking, a payment cannot be confirmed or refunded twice at the same time
+    @Version
+    @Column(nullable = false, columnDefinition = "int default 0")
+    private int version;
 
     public Payment(){}
 
@@ -142,5 +154,29 @@ public class Payment {
 
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public int getHotelId() {
+        return hotelId;
+    }
+
+    public void setHotelId(int hotelId) {
+        this.hotelId = hotelId;
+    }
+
+    public LocalDateTime getRefundedAt() {
+        return refundedAt;
+    }
+
+    public void setRefundedAt(LocalDateTime refundedAt) {
+        this.refundedAt = refundedAt;
+    }
+
+    public int getVersion() {
+        return version;
+    }
+
+    public void setVersion(int version) {
+        this.version = version;
     }
 }

@@ -1,33 +1,31 @@
 package com.nawasenahost.adminpanel.service;
 
+import com.nawasenahost.adminpanel.dto.PaymentReport;
 import com.nawasenahost.adminpanel.dto.PaymentResponse;
 import com.nawasenahost.adminpanel.dto.SessionData;
+import java.time.LocalDate;
+import java.util.List;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Service;
-import org.springframework.web.reactive.function.client.WebClient;
-import org.springframework.web.reactive.function.client.WebClientResponseException;
 
 @Service
 public class PaymentServiceImpl implements PaymentService {
 
-    private final WebClient webClient;
+    private final GatewayClient gatewayClient;
 
-    public PaymentServiceImpl(WebClient webClient) {
-        this.webClient = webClient;
+    public PaymentServiceImpl(GatewayClient gatewayClient) {
+        this.gatewayClient = gatewayClient;
+    }
+
+    @Override
+    public List<PaymentResponse> findAll(SessionData sessionData) {
+        return gatewayClient.getList(sessionData, new ParameterizedTypeReference<List<PaymentResponse>>() {},
+                "/api/payments/hotel/{hotelId}", sessionData.hotelId());
     }
 
     @Override
     public PaymentResponse findByBookingId(SessionData sessionData, int bookingId) {
-
-        try {
-            return webClient.get()
-                    .uri("/api/payments/booking/{bookingId}", bookingId)
-                    .header("Authorization", ApiSupport.bearer(sessionData))
-                    .retrieve()
-                    .bodyToMono(PaymentResponse.class)
-                    .block();
-        } catch (WebClientResponseException e) {
-            throw ApiSupport.toApiException(e);
-        }
+        return gatewayClient.get(sessionData, PaymentResponse.class, "/api/payments/booking/{bookingId}", bookingId);
     }
 
     @Override
@@ -35,21 +33,14 @@ public class PaymentServiceImpl implements PaymentService {
                                    int paymentId,
                                    String paymentMethod,
                                    String paymentSource) {
+        return gatewayClient.post(sessionData, null, PaymentResponse.class,
+                "/api/payments/confirm-payment?paymentId={paymentId}&paymentMethod={paymentMethod}&paymentSource={paymentSource}",
+                paymentId, paymentMethod, paymentSource);
+    }
 
-        try {
-            return webClient.post()
-                    .uri(uriBuilder -> uriBuilder
-                            .path("/api/payments/confirm-payment")
-                            .queryParam("paymentId", paymentId)
-                            .queryParam("paymentMethod", paymentMethod)
-                            .queryParam("paymentSource", paymentSource)
-                            .build())
-                    .header("Authorization", ApiSupport.bearer(sessionData))
-                    .retrieve()
-                    .bodyToMono(PaymentResponse.class)
-                    .block();
-        } catch (WebClientResponseException e) {
-            throw ApiSupport.toApiException(e);
-        }
+    @Override
+    public PaymentReport getReport(SessionData sessionData, LocalDate from, LocalDate to) {
+        return gatewayClient.get(sessionData, PaymentReport.class,
+                "/api/payments/hotel/{hotelId}/report?from={from}&to={to}", sessionData.hotelId(), from, to);
     }
 }

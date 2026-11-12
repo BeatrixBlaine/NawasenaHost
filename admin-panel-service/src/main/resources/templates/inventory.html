@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html th:replace="~{fragments/layout :: layout('Calendar', 'inventory', ~{::main})}" xmlns:th="http://www.thymeleaf.org">
+<body>
+<main class="mx-auto w-full max-w-6xl px-4 py-6 sm:px-8 sm:py-10">
+
+    <div class="mb-6 flex flex-wrap items-center justify-between gap-3">
+        <div>
+            <h1 class="page-title">Calendar</h1>
+            <p class="mt-1 text-sm text-slate-500">Availability and inventory of the next two weeks.</p>
+        </div>
+        <div class="flex items-center gap-2">
+            <a th:href="@{/inventory(from=${previous})}" class="btn-ghost">← Earlier</a>
+            <a th:href="@{/inventory}" class="btn-ghost">Today</a>
+            <a th:href="@{/inventory(from=${next})}" class="btn-ghost">Later →</a>
+        </div>
+    </div>
+
+    <div th:replace="~{fragments/components :: alerts}"></div>
+
+    <div class="mb-3 flex flex-wrap gap-4 text-xs text-slate-600">
+        <span class="inline-flex items-center gap-1.5"><i class="h-3 w-3 rounded bg-sky-500"></i> Booked</span>
+        <span class="inline-flex items-center gap-1.5"><i class="h-3 w-3 rounded bg-amber-400"></i> Maintenance</span>
+        <span class="inline-flex items-center gap-1.5"><i class="h-3 w-3 rounded bg-rose-500"></i> Blocked</span>
+        <span class="inline-flex items-center gap-1.5"><i class="h-3 w-3 rounded border border-slate-300 bg-white"></i> Free</span>
+    </div>
+
+    <div class="card overflow-x-auto">
+        <table class="min-w-full border-collapse text-center text-xs">
+            <thead>
+            <tr>
+                <th class="sticky left-0 z-10 bg-white px-3 py-2 text-left font-semibold text-slate-500">Room</th>
+                <th th:each="d : ${dates}" class="min-w-10 px-1 py-2 font-medium text-slate-500">
+                    <span class="block" th:text="${#temporals.format(d, 'd')}"></span>
+                    <span class="block text-[10px] uppercase text-slate-400" th:text="${#temporals.format(d, 'EEE')}"></span>
+                </th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="room : ${rooms}" class="border-t border-slate-100">
+                <td class="sticky left-0 z-10 whitespace-nowrap bg-white px-3 py-2 text-left text-sm font-semibold text-slate-900" th:text="${room.roomNumber}"></td>
+                <td th:each="d : ${dates}" class="p-0.5">
+                    <th:block th:with="state=${cells != null ? cells.get(room.roomId + '|' + d) : null}">
+                        <div th:if="${state == null}" class="h-7 rounded border border-slate-200 bg-white"></div>
+                        <div th:if="${state == 'BOOKED'}" class="h-7 rounded bg-sky-500" title="Booked"></div>
+                        <div th:if="${state == 'MAINTENANCE'}" class="h-7 rounded bg-amber-400" title="Maintenance"></div>
+                        <div th:if="${state == 'BLOCKED'}" class="h-7 rounded bg-rose-500" title="Blocked"></div>
+                    </th:block>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- occupancy of the same days -->
+    <section class="mt-6" th:if="${occupancy != null}">
+        <h2 class="mb-3 text-sm font-semibold text-slate-900"
+            th:text="'Occupancy · average ' + ${occupancy.averageRate} + '%'"></h2>
+        <div class="card overflow-x-auto">
+            <table class="min-w-full text-center text-xs">
+                <thead>
+                <tr>
+                    <th class="px-3 py-2 text-left font-semibold text-slate-500"></th>
+                    <th th:each="day : ${occupancy.days}" class="min-w-10 px-1 py-2 font-medium text-slate-500" th:text="${#temporals.format(day.date, 'd')}"></th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr class="border-t border-slate-100">
+                    <td class="px-3 py-2 text-left font-medium text-slate-600">Booked / total</td>
+                    <td th:each="day : ${occupancy.days}" class="px-1 py-2" th:text="${day.reserved} + '/' + ${day.total}"></td>
+                </tr>
+                <tr class="border-t border-slate-100">
+                    <td class="px-3 py-2 text-left font-medium text-slate-600">Rate</td>
+                    <td th:each="day : ${occupancy.days}" class="px-1 py-2 font-semibold"
+                        th:classappend="${day.rate >= 80} ? 'text-rose-600' : (${day.rate >= 50} ? 'text-amber-600' : 'text-emerald-600')"
+                        th:text="${#numbers.formatDecimal(day.rate, 1, 0)} + '%'"></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+    <p th:if="${occupancyError}" th:text="${occupancyError}" class="alert-error mt-4"></p>
+
+    <!-- close or open a room, front desk only reads -->
+    <section class="mt-8 grid gap-4 lg:grid-cols-2" th:if="${me.role != 'STAFF'}">
+        <form th:action="@{/inventory/block}" method="post" class="card space-y-4 p-5">
+            <h2 class="text-sm font-semibold text-slate-900">Close a room</h2>
+            <p class="text-sm text-slate-500">Maintenance or a private use. The room cannot be booked on these nights.</p>
+            <div>
+                <label for="blockRoom" class="label">Room</label>
+                <select id="blockRoom" name="roomId" class="input" required>
+                    <option th:each="room : ${rooms}" th:value="${room.roomId}" th:text="${room.roomNumber} + ' · ' + ${room.roomType}"></option>
+                </select>
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+                <div><label for="blockStart" class="label">From</label><input id="blockStart" name="startDate" type="date" th:min="${today}" required class="input"></div>
+                <div><label for="blockEnd" class="label">Until (not included)</label><input id="blockEnd" name="endDate" type="date" th:min="${today}" required class="input"></div>
+            </div>
+            <div>
+                <label for="blockStatus" class="label">Reason</label>
+                <select id="blockStatus" name="status" class="input">
+                    <option value="MAINTENANCE">Maintenance</option>
+                    <option value="BLOCKED">Blocked</option>
+                </select>
+            </div>
+            <button type="submit" class="btn">Close room</button>
+        </form>
+
+        <form th:action="@{/inventory/unblock}" method="post" class="card space-y-4 p-5">
+            <h2 class="text-sm font-semibold text-slate-900">Open a room again</h2>
+            <p class="text-sm text-slate-500">Removes maintenance and blocks. Bookings are never touched.</p>
+            <div>
+                <label for="openRoom" class="label">Room</label>
+                <select id="openRoom" name="roomId" class="input" required>
+                    <option th:each="room : ${rooms}" th:value="${room.roomId}" th:text="${room.roomNumber} + ' · ' + ${room.roomType}"></option>
+                </select>
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+                <div><label for="openStart" class="label">From</label><input id="openStart" name="startDate" type="date" required class="input"></div>
+                <div><label for="openEnd" class="label">Until (not included)</label><input id="openEnd" name="endDate" type="date" required class="input"></div>
+            </div>
+            <button type="submit" class="btn-ghost">Open room</button>
+        </form>
+    </section>
+</main>
+</body>
+</html>

@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html th:replace="~{fragments/layout :: layout('Room', 'rooms', ~{::main})}" xmlns:th="http://www.thymeleaf.org">
+<body>
+<main class="mx-auto w-full max-w-2xl px-4 py-6 sm:px-8 sm:py-10">
+
+    <a th:href="@{/rooms}" class="text-sm text-slate-500 hover:text-slate-900">← All rooms</a>
+    <h1 class="page-title mb-6 mt-4" th:text="${form.roomId > 0} ? 'Edit room' : 'Add room'"></h1>
+
+    <div th:replace="~{fragments/components :: alerts}"></div>
+
+    <form th:action="${form.roomId > 0} ? @{/rooms/{id}(id=${form.roomId})} : @{/rooms}" th:object="${form}" method="post"
+          class="card space-y-5 p-5 sm:p-6">
+        <div class="grid gap-5 sm:grid-cols-2">
+            <div>
+                <label for="roomNumber" class="label">Room number</label>
+                <input id="roomNumber" th:field="*{roomNumber}" type="text" class="input">
+                <p th:if="${#fields.hasErrors('roomNumber')}" th:errors="*{roomNumber}" class="field-error"></p>
+            </div>
+            <div>
+                <label for="roomType" class="label">Type</label>
+                <input id="roomType" th:field="*{roomType}" type="text" class="input" placeholder="Deluxe, Standard, Suite">
+                <p th:if="${#fields.hasErrors('roomType')}" th:errors="*{roomType}" class="field-error"></p>
+            </div>
+            <div>
+                <label for="price" class="label">Price per night</label>
+                <input id="price" th:field="*{price}" type="number" step="1000" min="0" class="input">
+                <p th:if="${#fields.hasErrors('price')}" th:errors="*{price}" class="field-error"></p>
+            </div>
+            <div>
+                <label for="capacity" class="label">Guests</label>
+                <input id="capacity" th:field="*{capacity}" type="number" min="1" class="input">
+                <p th:if="${#fields.hasErrors('capacity')}" th:errors="*{capacity}" class="field-error"></p>
+            </div>
+            <div class="sm:col-span-2">
+                <label for="description" class="label">Description</label>
+                <textarea id="description" th:field="*{description}" rows="3" class="input"></textarea>
+                <p th:if="${#fields.hasErrors('description')}" th:errors="*{description}" class="field-error"></p>
+            </div>
+        </div>
+        <div class="flex justify-end gap-3 border-t border-slate-100 pt-5">
+            <a th:href="@{/rooms}" class="btn-ghost">Cancel</a>
+            <button type="submit" class="btn">Save</button>
+        </div>
+    </form>
+</main>
+</body>
+</html>
