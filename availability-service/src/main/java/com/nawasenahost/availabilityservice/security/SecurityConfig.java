@@ -78,12 +78,18 @@ public class SecurityConfig {
                 .httpBasic(configurer -> configurer.disable())
                 .authorizeHttpRequests(configurer -> configurer
 
-                        .requestMatchers(HttpMethod.GET, "/api/availabilities/hotel/{hotelId}/available-rooms").hasAnyRole("MANAGER", "ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/availabilities/hotel/{hotelId}/available-rooms").hasAnyRole("ADMIN", "MANAGER", "STAFF")
+                        .requestMatchers(HttpMethod.GET, "/api/availabilities/hotel/{hotelId}/blocks").hasAnyRole("ADMIN", "MANAGER", "STAFF")
+                        .requestMatchers(HttpMethod.GET, "/api/inventory/hotel/{hotelId}").hasAnyRole("ADMIN", "MANAGER", "STAFF")
+                        .requestMatchers(HttpMethod.GET, "/api/inventory/hotel/{hotelId}/occupancy").hasAnyRole("ADMIN", "MANAGER", "STAFF")
+                        .requestMatchers(HttpMethod.POST, "/api/availabilities/block").hasAnyRole("ADMIN", "MANAGER")
+                        .requestMatchers(HttpMethod.DELETE, "/api/availabilities/unblock").hasAnyRole("ADMIN", "MANAGER")
                         .requestMatchers(HttpMethod.GET, "/api/availabilities/check").hasAuthority("SCOPE_availability.read")
                         .requestMatchers(HttpMethod.POST, "/api/availabilities/book").hasAuthority("SCOPE_availability.create")
+                        .requestMatchers(HttpMethod.DELETE, "/api/availabilities/release").hasAuthority("SCOPE_availability.create")
                         .requestMatchers(HttpMethod.POST, "/api/inventory/initialize").hasAuthority("SCOPE_inventory.write")
                         .requestMatchers("/actuator/health/**").permitAll()
-                        .requestMatchers("/actuator/**").hasRole("MANAGER")
+                        .requestMatchers("/actuator/**").hasRole("ADMIN")
                         .requestMatchers(
                                 "/my-ui.html",
                                 "/swagger-ui/**",

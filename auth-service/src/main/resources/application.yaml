@@ -15,9 +15,11 @@ spring:
                 - hotel.read
                 - room.read
                 - payment.create
+                - payment.read
                 - availability.read
                 - availability.create
                 - customer.read
+                - audit.write
 
           payment-service:
             registration:
@@ -31,6 +33,7 @@ spring:
                 - room.read
                 - booking.read
                 - booking.create
+                - audit.write
 
           availability-service:
             registration:
@@ -42,6 +45,7 @@ spring:
                 - client_credentials
               scopes:
                 - room.read
+                - audit.write
 
           room-service:
             registration:
@@ -54,6 +58,7 @@ spring:
               scopes:
                 - hotel.read
                 - inventory.write
+                - audit.write
 
           customer-service:
             registration:
@@ -65,3 +70,4 @@ spring:
                 - client_credentials
               scopes:
                 - booking.create
+                - audit.write

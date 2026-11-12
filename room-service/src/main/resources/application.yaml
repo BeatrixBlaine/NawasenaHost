@@ -12,6 +12,7 @@ spring:
             scope:
               - hotel.read
               - inventory.write
+              - audit.write
 
         provider:
           auth-service:

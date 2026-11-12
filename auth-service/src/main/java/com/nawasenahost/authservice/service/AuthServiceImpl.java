@@ -27,64 +27,85 @@ public class AuthServiceImpl implements AuthService{
     private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;
     private final PasswordEncoder passwordEncoder;
+    private final CurrentUserService currentUserService;
+    private final AuditLogService auditLogService;
 
     @Autowired
     public AuthServiceImpl(AuthRepository authRepository,
                            AuthenticationManager authenticationManager,
                            JwtService jwtService,
-                           PasswordEncoder passwordEncoder) {
+                           PasswordEncoder passwordEncoder,
+                           CurrentUserService currentUserService,
+                           AuditLogService auditLogService) {
         this.authRepository = authRepository;
         this.authenticationManager = authenticationManager;
         this.jwtService = jwtService;
         this.passwordEncoder = passwordEncoder;
+        this.currentUserService = currentUserService;
+        this.auditLogService = auditLogService;
     }
 
-    private Auth getCurrentUser() {
-        Authentication authentication =
-                SecurityContextHolder.getContext().getAuthentication();
+    // ADMIN manages every account, MANAGER only the staff of the own hotel
+    private Auth getCurrentAdminOrManager() {
+        Auth currentUser = currentUserService.getCurrentUser();
 
-        if (authentication == null
-                || !authentication.isAuthenticated()
-                || authentication.getName().equals("anonymousUser")) {
-            throw new AccessDeniedException("Authentication required");
-        }
-
-        return authRepository.findByUsername(authentication.getName())
-                .orElseThrow(() ->
-                        new UsernameNotFoundException("Authenticated account not found"));
-    }
-
-    private Auth getCurrentManager() {
-        Auth currentUser = getCurrentUser();
-
-        if (currentUser.getRole() != AuthRole.MANAGER) {
+        if (currentUser.getRole() != AuthRole.ADMIN
+                && currentUser.getRole() != AuthRole.MANAGER) {
             throw new AccessDeniedException(
-                    "Only managers can manage staff accounts"
+                    "Only admins and managers can manage accounts"
             );
         }
 
         return currentUser;
     }
 
-    @Override
-    public List<Auth> findAll() {
-        Auth currentManager = getCurrentManager();
+    // manager can only touch STAFF accounts of the same hotel
+    private void assertCanManage(Auth currentUser, Auth targetUser) {
 
-        return authRepository.findAllByHotelId(currentManager.getHotelId());
+        if (currentUser.getRole() == AuthRole.ADMIN) {
+            return;
+        }
+
+        if (targetUser.getHotelId() != currentUser.getHotelId()
+                || targetUser.getRole() != AuthRole.STAFF) {
+            throw new UserNotFoundException("User not found");
+        }
+    }
+
+    private void audit(Auth actor, String action, Auth target, String details) {
+        auditLogService.record(
+                actor.getUsername(),
+                actor.getRole().name(),
+                target.getHotelId(),
+                action,
+                "USER",
+                String.valueOf(target.getAuthId()),
+                details);
+    }
+
+    @Override
+    public List<Auth> findAll(Integer hotelId) {
+        Auth currentUser = getCurrentAdminOrManager();
+
+        if (currentUser.getRole() == AuthRole.ADMIN) {
+            return hotelId == null
+                    ? authRepository.findAll()
+                    : authRepository.findAllByHotelId(hotelId);
+        }
+
+        return authRepository.findAllByHotelId(currentUser.getHotelId());
     }
 
     @Override
     public Auth findById(int id) {
 
-        Auth currentManager = getCurrentManager();
+        Auth currentUser = getCurrentAdminOrManager();
 
         Auth targetUser = authRepository.findById(id)
                 .orElseThrow(() ->
                         new UserNotFoundException("User not found"));
 
-        if (targetUser.getHotelId() != currentManager.getHotelId()) {
-            throw new UserNotFoundException("User not found");
-        }
+        assertCanManage(currentUser, targetUser);
 
         return targetUser;
     }
@@ -107,37 +128,52 @@ public class AuthServiceImpl implements AuthService{
         response.setHotelId(theAuth.getHotelId());
         response.setTokenType("Bearer");
 
+        audit(theAuth, "LOGIN", theAuth, "Signed in");
+
         return response;
     }
 
     @Override
     public void deleteById(int id) {
-        Auth currentManager = getCurrentManager();
+        Auth currentUser = getCurrentAdminOrManager();
 
         Auth tempAuth = findById(id);
 
-        if (tempAuth.getAuthId().equals(currentManager.getAuthId())) {
+        if (tempAuth.getAuthId().equals(currentUser.getAuthId())) {
             throw new AccessDeniedException(
                     "You cannot delete your own account"
             );
         }
 
-        if (tempAuth.getHotelId() != currentManager.getHotelId()) {
-            throw new AccessDeniedException("Access denied");
-        }
-
         authRepository.deleteById(id);
+
+        audit(currentUser, "USER_DELETED", tempAuth, "Deleted account " + tempAuth.getUsername());
     }
 
     @Override
     public Auth save(AuthRequest authRequest) {
 
-        Auth currentManager = getCurrentManager();
+        Auth currentUser = getCurrentAdminOrManager();
 
-        if (authRequest.getRole() != AuthRole.ADMIN) {
-            throw new AccessDeniedException(
-                    "Only managers can create accounts"
-            );
+        int hotelId;
+
+        if (currentUser.getRole() == AuthRole.MANAGER) {
+            // managers only create staff for their own hotel
+            if (authRequest.getRole() != AuthRole.STAFF) {
+                throw new AccessDeniedException(
+                        "Managers can only create STAFF accounts"
+                );
+            }
+
+            hotelId = currentUser.getHotelId();
+        } else if (authRequest.getRole() == AuthRole.ADMIN) {
+            hotelId = 0;
+        } else {
+            if (authRequest.getHotelId() == null || authRequest.getHotelId() < 1) {
+                throw new IllegalArgumentException("Hotel ID is required for this role");
+            }
+
+            hotelId = authRequest.getHotelId();
         }
 
         if (authRepository.findByUsername(authRequest.getUsername()).isPresent()) {
@@ -146,7 +182,7 @@ public class AuthServiceImpl implements AuthService{
 
         Auth auth = new Auth();
 
-        auth.setHotelId(currentManager.getHotelId());
+        auth.setHotelId(hotelId);
         auth.setUsername(authRequest.getUsername());
         auth.setEmail(authRequest.getEmail());
         auth.setPassword(
@@ -154,23 +190,26 @@ public class AuthServiceImpl implements AuthService{
         );
         auth.setRole(authRequest.getRole());
 
-        return authRepository.save(auth);
+        Auth savedAuth = authRepository.save(auth);
+
+        audit(currentUser, "USER_CREATED", savedAuth,
+                "Created " + savedAuth.getRole() + " account " + savedAuth.getUsername());
+
+        return savedAuth;
     }
 
     @Override
     public Auth update(int authId, AuthUpdateRequest request) {
-        Auth currentManager = getCurrentManager();
+        Auth currentUser = getCurrentAdminOrManager();
 
         Auth targetUser = authRepository.findById(authId)
                 .orElseThrow(() ->
                         new UserNotFoundException("User not found"));
 
-        if (targetUser.getHotelId() != currentManager.getHotelId()) {
-            throw new UserNotFoundException("User not found");
-        }
+        assertCanManage(currentUser, targetUser);
 
         if (authRepository.findByUsername(request.getUsername())
-                .filter(existing -> existing.getAuthId() != authId)
+                .filter(existing -> !existing.getAuthId().equals(authId))
                 .isPresent()) {
             throw new IllegalArgumentException("Username already exists");
         }
@@ -185,7 +224,20 @@ public class AuthServiceImpl implements AuthService{
             );
         }
 
-        return authRepository.save(targetUser);
+        if (request.getEnabled() != null) {
+
+            if (!request.getEnabled() && targetUser.getAuthId().equals(currentUser.getAuthId())) {
+                throw new AccessDeniedException("You cannot disable your own account");
+            }
+
+            targetUser.setEnabled(request.getEnabled());
+        }
+
+        Auth savedAuth = authRepository.save(targetUser);
+
+        audit(currentUser, "USER_UPDATED", savedAuth, "Updated account " + savedAuth.getUsername());
+
+        return savedAuth;
     }
 
 }

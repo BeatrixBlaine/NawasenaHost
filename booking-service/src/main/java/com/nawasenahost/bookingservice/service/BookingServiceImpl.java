@@ -1,7 +1,10 @@
 package com.nawasenahost.bookingservice.service;
 
 import com.nawasenahost.bookingservice.client.*;
+import com.nawasenahost.bookingservice.audit.AuditPublisher;
+import com.nawasenahost.bookingservice.dto.BookingReport;
 import com.nawasenahost.bookingservice.dto.BookingRequest;
+import com.nawasenahost.bookingservice.dto.DailyCount;
 import com.nawasenahost.bookingservice.dto.BookingResponse;
 import com.nawasenahost.bookingservice.dto.PaymentResponse;
 import com.nawasenahost.bookingservice.entity.Booking;
@@ -15,8 +18,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
-import java.util.List;
-import java.util.Optional;
+import java.time.LocalDateTime;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class BookingServiceImpl implements BookingService{
@@ -28,6 +32,7 @@ public class BookingServiceImpl implements BookingService{
     private final PaymentClient paymentClient;
     private final CustomerClient customerClient;
     private final TenantGuard tenantGuard;
+    private final AuditPublisher auditPublisher;
 
     @Autowired
     public BookingServiceImpl(BookingRepository bookingRepository,
@@ -36,7 +41,8 @@ public class BookingServiceImpl implements BookingService{
                               AvailabilityClient availabilityClient,
                               PaymentClient paymentClient,
                               CustomerClient customerClient,
-                              TenantGuard tenantGuard) {
+                              TenantGuard tenantGuard,
+                              AuditPublisher auditPublisher) {
         this.bookingRepository = bookingRepository;
         this.hotelClient = hotelClient;
         this.roomClient = roomClient;
@@ -44,6 +50,7 @@ public class BookingServiceImpl implements BookingService{
         this.paymentClient = paymentClient;
         this.customerClient = customerClient;
         this.tenantGuard = tenantGuard;
+        this.auditPublisher = auditPublisher;
     }
 
     // checks if customer exist
@@ -158,7 +165,9 @@ public class BookingServiceImpl implements BookingService{
         tempBooking.setCheckOutDate(bookingRequest.getCheckOutDate());
         tempBooking.setGuestCount(bookingRequest.getGuestCount());
         tempBooking.setStatus(BookingStatus.PENDING);
-        tempBooking.setCustomerId(bookingRequest.getCustomerId());
+        tempBooking.setSource(source);
+        tempBooking.setExternalReference(externalReference);
+        tempBooking.setCreatedAt(LocalDateTime.now());
 
         Booking savedBooking = bookingRepository.save(tempBooking);
 
@@ -232,10 +241,137 @@ public class BookingServiceImpl implements BookingService{
             throw new BookingCannotBeCancelledException("Only pending booking can be cancelled");
         }
 
+        return cancelBooking(bookingId, null);
+    }
+
+    // pending booking: only the payment is cancelled, confirmed booking: nights are released and the payment is refunded
+    @Override
+    public Booking cancelBooking(int bookingId, String reason) {
+
+        Booking tempBooking = findById(bookingId);
+
+        if (tempBooking.getStatus() == BookingStatus.PENDING) {
+            paymentClient.cancelPaymentByBookingId(bookingId);
+        } else if (tempBooking.getStatus() == BookingStatus.CONFIRMED) {
+
+            // refunding money is not a front desk decision
+            tenantGuard.assertManagerOrAdmin();
+
+            if (!tempBooking.getCheckOutDate().isAfter(LocalDate.now())) {
+                throw new BookingCannotBeCancelledException("The stay is already finished, it cannot be cancelled");
+            }
+
+            // both calls can be repeated safely, so a failed cancel can simply be tried again
+            availabilityClient.releaseBooking(
+                    tempBooking.getRoomId(),
+                    tempBooking.getCheckInDate(),
+                    tempBooking.getCheckOutDate());
+
+            paymentClient.refundPaymentByBookingId(bookingId);
+        } else {
+            throw new BookingCannotBeCancelledException("Only pending or confirmed booking can be cancelled");
+        }
+
+        BookingStatus previousStatus = tempBooking.getStatus();
+
         tempBooking.setStatus(BookingStatus.CANCELLED);
+        tempBooking.setCancelledAt(LocalDateTime.now());
+        tempBooking.setCancelReason(reason == null || reason.isBlank() ? null : reason);
+
         Booking cancelledBooking = bookingRepository.save(tempBooking);
-        paymentClient.cancelPaymentByBookingId(tempBooking.getBookingId());
+
+        auditPublisher.publish(
+                cancelledBooking.getHotelId(),
+                "BOOKING_CANCELLED",
+                "BOOKING",
+                cancelledBooking.getBookingId(),
+                "Cancelled " + previousStatus + " booking" + (reason == null || reason.isBlank() ? "" : ": " + reason));
 
         return cancelledBooking;
+    }
+
+    // check-out: the stay has started and the booking is closed
+    @Override
+    public Booking completeBooking(int bookingId) {
+
+        Booking tempBooking = findById(bookingId);
+
+        if (tempBooking.getStatus() != BookingStatus.CONFIRMED) {
+            throw new BookingCannotBeConfirmedException("Only confirmed booking can be completed");
+        }
+
+        if (tempBooking.getCheckInDate().isAfter(LocalDate.now())) {
+            throw new BookingCannotBeConfirmedException("The guest has not arrived yet");
+        }
+
+        tempBooking.setStatus(BookingStatus.COMPLETED);
+
+        Booking completedBooking = bookingRepository.save(tempBooking);
+
+        auditPublisher.publish(
+                completedBooking.getHotelId(),
+                "BOOKING_COMPLETED",
+                "BOOKING",
+                completedBooking.getBookingId(),
+                "Guest checked out");
+
+        return completedBooking;
+    }
+
+    @Override
+    public List<Booking> findByHotelIdAndCustomerId(int hotelId, int customerId) {
+
+        tenantGuard.assertHotel(hotelId);
+
+        return bookingRepository.findByHotelIdAndCustomerIdOrderByBookingIdDesc(hotelId, customerId);
+    }
+
+    @Override
+    public BookingReport getReport(int hotelId, LocalDate from, LocalDate to) {
+
+        tenantGuard.assertHotel(hotelId);
+
+        if (to.isBefore(from)) {
+            throw new IllegalArgumentException("End date must not be before start date");
+        }
+
+        List<Booking> bookings = bookingRepository.findByHotelIdAndCheckInDateBetween(hotelId, from, to);
+
+        Map<String, Long> byStatus = new LinkedHashMap<>();
+        for (BookingStatus status : BookingStatus.values()) {
+            byStatus.put(status.name(), 0L);
+        }
+        bookings.forEach(booking -> byStatus.merge(booking.getStatus().name(), 1L, Long::sum));
+
+        Map<String, Long> bySource = bookings.stream()
+                .collect(Collectors.groupingBy(
+                        booking -> booking.getSource() == null ? "DIRECT" : booking.getSource(),
+                        TreeMap::new,
+                        Collectors.counting()));
+
+        // one entry for every day, also the empty ones, so a chart has no holes
+        Map<LocalDate, Long> perDay = new TreeMap<>();
+        for (LocalDate date = from; !date.isAfter(to); date = date.plusDays(1)) {
+            perDay.put(date, 0L);
+        }
+        bookings.stream()
+                .filter(booking -> booking.getStatus() != BookingStatus.CANCELLED)
+                .forEach(booking -> perDay.merge(booking.getCheckInDate(), 1L, Long::sum));
+
+        BookingReport report = new BookingReport();
+        report.setFrom(from);
+        report.setTo(to);
+        report.setTotalBookings(bookings.size());
+        report.setByStatus(byStatus);
+        report.setBySource(bySource);
+        report.setDailyCheckIns(perDay.entrySet().stream()
+                .map(entry -> new DailyCount(entry.getKey(), entry.getValue()))
+                .toList());
+        report.setArrivalsToday(bookingRepository.countByHotelIdAndStatusAndCheckInDate(
+                hotelId, BookingStatus.CONFIRMED, LocalDate.now()));
+        report.setDeparturesToday(bookingRepository.countByHotelIdAndStatusAndCheckOutDate(
+                hotelId, BookingStatus.CONFIRMED, LocalDate.now()));
+
+        return report;
     }
 }

@@ -1,106 +1,66 @@
 package com.nawasenahost.adminpanel.service;
 
+import com.nawasenahost.adminpanel.dto.BookingReport;
 import com.nawasenahost.adminpanel.dto.BookingRequest;
 import com.nawasenahost.adminpanel.dto.BookingResponse;
 import com.nawasenahost.adminpanel.dto.BookingSummary;
-import com.nawasenahost.adminpanel.dto.CustomerResponse;
 import com.nawasenahost.adminpanel.dto.SessionData;
+import java.time.LocalDate;
+import java.util.List;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Service;
-import org.springframework.web.reactive.function.client.WebClient;
-import org.springframework.web.reactive.function.client.WebClientResponseException;
-
-import java.util.List;
 
 @Service
 public class BookingServiceImpl implements BookingService {
 
-    private final WebClient webClient;
+    private final GatewayClient gatewayClient;
 
-    public BookingServiceImpl(WebClient webClient) {
-        this.webClient = webClient;
+    public BookingServiceImpl(GatewayClient gatewayClient) {
+        this.gatewayClient = gatewayClient;
     }
 
     @Override
     public List<BookingSummary> findAll(SessionData sessionData) {
+        return gatewayClient.getList(sessionData, new ParameterizedTypeReference<List<BookingSummary>>() {},
+                "/api/bookings/hotel/{hotelId}", sessionData.hotelId());
+    }
 
-        try {
-            return webClient.get()
-                    .uri("/api/bookings/hotel/{hotelId}", sessionData.hotelId())
-                    .header("Authorization", ApiSupport.bearer(sessionData))
-                    .retrieve()
-                    .bodyToMono(new ParameterizedTypeReference<List<BookingSummary>>() {})
-                    .block();
-        } catch (WebClientResponseException e) {
-            throw ApiSupport.toApiException(e);
-        }
+    @Override
+    public List<BookingSummary> findByCustomer(SessionData sessionData, int customerId) {
+        return gatewayClient.getList(sessionData, new ParameterizedTypeReference<List<BookingSummary>>() {},
+                "/api/bookings/hotel/{hotelId}/customer/{customerId}", sessionData.hotelId(), customerId);
     }
 
     @Override
     public BookingSummary findById(SessionData sessionData, int bookingId) {
-
-        try {
-            return webClient.get()
-                    .uri("/api/bookings/{bookingId}", bookingId)
-                    .header("Authorization", ApiSupport.bearer(sessionData))
-                    .retrieve()
-                    .bodyToMono(BookingSummary.class)
-                    .block();
-        } catch (WebClientResponseException e) {
-            throw ApiSupport.toApiException(e);
-        }
+        return gatewayClient.get(sessionData, BookingSummary.class, "/api/bookings/{bookingId}", bookingId);
     }
 
-    // customer name is only a nice to have, the page still works without it
     @Override
-    public CustomerResponse findCustomer(SessionData sessionData, int customerId) {
-
-        try {
-            return webClient.get()
-                    .uri("/api/customers/{customerId}", customerId)
-                    .header("Authorization", ApiSupport.bearer(sessionData))
-                    .retrieve()
-                    .bodyToMono(CustomerResponse.class)
-                    .block();
-        } catch (WebClientResponseException e) {
-            return null;
-        }
+    public BookingReport getReport(SessionData sessionData, LocalDate from, LocalDate to) {
+        return gatewayClient.get(sessionData, BookingReport.class,
+                "/api/bookings/hotel/{hotelId}/report?from={from}&to={to}", sessionData.hotelId(), from, to);
     }
 
     @Override
     public BookingResponse create(SessionData sessionData, BookingRequest bookingRequest) {
 
-        // the hotel always comes from the token of the user, never from the form
+        // the hotel always comes from the session of the user, never from the form
         bookingRequest.getBookingData().setHotelId(sessionData.hotelId());
 
-        try {
-            return webClient.post()
-                    .uri("/api/customers/create-new-booking")
-                    .header("Authorization", ApiSupport.bearer(sessionData))
-                    .bodyValue(bookingRequest)
-                    .retrieve()
-                    .bodyToMono(BookingResponse.class)
-                    .block();
-        } catch (WebClientResponseException e) {
-            throw ApiSupport.toApiException(e);
-        }
+        return gatewayClient.post(sessionData, bookingRequest, BookingResponse.class,
+                "/api/customers/create-new-booking");
     }
 
     @Override
-    public BookingSummary cancelPending(SessionData sessionData, int bookingId) {
+    public BookingSummary cancel(SessionData sessionData, int bookingId, String reason) {
+        return gatewayClient.put(sessionData, null, BookingSummary.class,
+                "/api/bookings/{bookingId}/cancel?reason={reason}", bookingId, reason == null ? "" : reason);
+    }
 
-        try {
-            return webClient.delete()
-                    .uri(uriBuilder -> uriBuilder
-                            .path("/api/bookings/cancel-pending-booking")
-                            .queryParam("bookingId", bookingId)
-                            .build())
-                    .header("Authorization", ApiSupport.bearer(sessionData))
-                    .retrieve()
-                    .bodyToMono(BookingSummary.class)
-                    .block();
-        } catch (WebClientResponseException e) {
-            throw ApiSupport.toApiException(e);
-        }
+    @Override
+    public BookingSummary complete(SessionData sessionData, int bookingId) {
+        return gatewayClient.put(sessionData, null, BookingSummary.class,
+                "/api/bookings/{bookingId}/complete", bookingId);
     }
 }

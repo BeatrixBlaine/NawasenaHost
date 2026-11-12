@@ -34,6 +34,11 @@ public class RoomInventory {
     @Column(nullable = false)
     private int reserved;
 
+    // optimistic locking on top of the pessimistic lock used while booking
+    @Version
+    @Column(nullable = false, columnDefinition = "int default 0")
+    private int version;
+
     public RoomInventory(){}
 
     public RoomInventory(int hotelId, LocalDate date, int total, int available, int reserved) {
@@ -90,5 +95,13 @@ public class RoomInventory {
 
     public void setReserved(int reserved) {
         this.reserved = reserved;
+    }
+
+    public int getVersion() {
+        return version;
+    }
+
+    public void setVersion(int version) {
+        this.version = version;
     }
 }

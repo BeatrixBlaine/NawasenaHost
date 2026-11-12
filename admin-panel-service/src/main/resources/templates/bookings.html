@@ -1,59 +1,55 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{fragments/layout :: head('Bookings')}"></head>
+<html th:replace="~{fragments/layout :: layout('Bookings', 'bookings', ~{::main})}" xmlns:th="http://www.thymeleaf.org">
 <body>
-<header th:replace="~{fragments/layout :: nav('bookings')}"></header>
+<main class="mx-auto w-full max-w-6xl px-4 py-6 sm:px-8 sm:py-10">
 
-<main class="mx-auto max-w-5xl px-6 py-10">
-
-    <div class="mb-8 flex items-end justify-between">
-        <div>
-            <h1 class="text-xl font-semibold tracking-tight">Bookings</h1>
-            <p class="mt-1 text-sm text-stone-500">All bookings of your hotel.</p>
-        </div>
-
-        <div class="flex gap-1 text-sm">
-            <a th:href="@{/bookings}" class="rounded-md px-3 py-1.5"
-               th:classappend="${status == null or status == ''} ? 'bg-stone-100 text-stone-900' : 'text-stone-500 hover:text-stone-900'">All</a>
-            <a th:href="@{/bookings(status='PENDING')}" class="rounded-md px-3 py-1.5"
-               th:classappend="${status == 'PENDING'} ? 'bg-stone-100 text-stone-900' : 'text-stone-500 hover:text-stone-900'">Pending</a>
-            <a th:href="@{/bookings(status='CONFIRMED')}" class="rounded-md px-3 py-1.5"
-               th:classappend="${status == 'CONFIRMED'} ? 'bg-stone-100 text-stone-900' : 'text-stone-500 hover:text-stone-900'">Confirmed</a>
-            <a th:href="@{/bookings(status='CANCELLED')}" class="rounded-md px-3 py-1.5"
-               th:classappend="${status == 'CANCELLED'} ? 'bg-stone-100 text-stone-900' : 'text-stone-500 hover:text-stone-900'">Cancelled</a>
-        </div>
+    <div class="mb-6 flex flex-wrap items-center justify-between gap-3">
+        <h1 class="page-title">Bookings</h1>
+        <a th:href="@{/availabilities}" class="btn">New booking</a>
     </div>
 
-    <div th:replace="~{fragments/layout :: alerts}"></div>
+    <div th:replace="~{fragments/components :: alerts}"></div>
 
-    <div class="card overflow-hidden">
-        <table class="w-full">
-            <thead class="border-b border-stone-200">
+    <form th:action="@{/bookings}" method="get" class="mb-4 grid gap-3 sm:grid-cols-[1fr_12rem_auto]">
+        <input type="search" name="q" th:value="${q}" placeholder="Booking number or OTA reference" class="input">
+        <select name="status" class="input">
+            <option value="">All statuses</option>
+            <option th:each="s : ${T(java.util.List).of('PENDING', 'CONFIRMED', 'COMPLETED', 'CANCELLED')}"
+                    th:value="${s}" th:text="${s}" th:selected="${s == status}"></option>
+        </select>
+        <button type="submit" class="btn-ghost">Filter</button>
+    </form>
+
+    <div class="card overflow-x-auto">
+        <table class="min-w-full divide-y divide-slate-100">
+            <thead>
             <tr>
-                <th class="th">#</th>
-                <th class="th">Room</th>
-                <th class="th">Check-in</th>
-                <th class="th">Check-out</th>
-                <th class="th">Guests</th>
+                <th class="th">No.</th>
+                <th class="th">Stay</th>
+                <th class="th hidden md:table-cell">Room</th>
+                <th class="th hidden md:table-cell">Guests</th>
+                <th class="th hidden sm:table-cell">Source</th>
                 <th class="th">Status</th>
             </tr>
             </thead>
-            <tbody class="divide-y divide-stone-100">
-            <tr th:each="booking : ${bookings}">
-                <td class="td"><a th:href="@{/bookings/{id}(id=${booking.bookingId})}" class="font-medium text-stone-900 hover:underline" th:text="${booking.bookingId}"></a></td>
-                <td class="td" th:text="${booking.roomId}"></td>
-                <td class="td" th:text="${booking.checkInDate}"></td>
-                <td class="td" th:text="${booking.checkOutDate}"></td>
-                <td class="td" th:text="${booking.guestCount}"></td>
-                <td class="td"><span th:replace="~{fragments/layout :: status(${booking.status})}"></span></td>
+            <tbody class="divide-y divide-slate-100">
+            <tr th:each="b : ${bookings}" class="hover:bg-slate-50">
+                <td class="td"><a th:href="@{/bookings/{id}(id=${b.bookingId})}" class="font-semibold text-teal-700 hover:underline" th:text="'#' + ${b.bookingId}"></a></td>
+                <td class="td whitespace-nowrap" th:text="${#temporals.format(b.checkInDate, 'd MMM')} + ' → ' + ${#temporals.format(b.checkOutDate, 'd MMM yyyy')}"></td>
+                <td class="td hidden md:table-cell" th:text="${b.roomId}"></td>
+                <td class="td hidden md:table-cell" th:text="${b.guestCount}"></td>
+                <td class="td hidden sm:table-cell">
+                    <span th:text="${b.source}"></span>
+                    <span th:if="${b.externalReference != null}" class="block text-xs text-slate-400" th:text="${b.externalReference}"></span>
+                </td>
+                <td class="td"><span th:replace="~{fragments/components :: status(${b.status})}"></span></td>
             </tr>
-            <tr th:if="${bookings == null or #lists.isEmpty(bookings)}">
-                <td colspan="6" class="td py-8 text-center text-stone-400">No bookings found.</td>
+            <tr th:if="${bookings != null and #lists.isEmpty(bookings)}">
+                <td colspan="6" class="td py-10 text-center text-slate-500">No bookings found.</td>
             </tr>
             </tbody>
         </table>
     </div>
 </main>
-
 </body>
 </html>

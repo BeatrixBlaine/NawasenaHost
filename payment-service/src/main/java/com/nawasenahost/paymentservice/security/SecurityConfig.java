@@ -78,17 +78,21 @@ public class SecurityConfig {
                 .httpBasic(configurer -> configurer.disable())
                 .authorizeHttpRequests(configurer -> configurer
 
-                        .requestMatchers(HttpMethod.GET, "/api/payments").denyAll()
-                        .requestMatchers(HttpMethod.GET, "/api/payments/booking/{bookingId}").hasAnyRole("MANAGER", "ADMIN")
-                        .requestMatchers(HttpMethod.GET, "/api/payments/{paymentId}").hasAnyRole("MANAGER", "ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/payments").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/payments/hotel/{hotelId}").hasAnyRole("ADMIN", "MANAGER", "STAFF")
+                        .requestMatchers(HttpMethod.GET, "/api/payments/hotel/{hotelId}/report").hasAnyRole("ADMIN", "MANAGER")
+                        .requestMatchers(HttpMethod.GET, "/api/payments/booking/{bookingId}").hasAnyAuthority("SCOPE_payment.read", "ROLE_ADMIN", "ROLE_MANAGER", "ROLE_STAFF")
+                        .requestMatchers(HttpMethod.GET, "/api/payments/{paymentId}").hasAnyRole("ADMIN", "MANAGER", "STAFF")
                         .requestMatchers(HttpMethod.POST, "/api/payments/create-payment").hasAuthority("SCOPE_payment.create")
-                        .requestMatchers(HttpMethod.POST, "/api/payments/confirm-payment").hasAnyRole("MANAGER", "ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/api/payments/cancel-payment-by-booking-id").hasAuthority("SCOPE_payment.create")
-                        .requestMatchers(HttpMethod.POST, "/api/payments").hasRole("MANAGER")
-                        .requestMatchers(HttpMethod.PUT, "/api/payments/{paymentId}").hasRole("MANAGER")
-                        .requestMatchers(HttpMethod.DELETE, "/api/payments/{paymentId}").hasRole("MANAGER")
+                        .requestMatchers(HttpMethod.PUT, "/api/payments/refund-by-booking-id").hasAuthority("SCOPE_payment.create")
+                        .requestMatchers(HttpMethod.POST, "/api/payments/confirm-payment").hasAnyRole("ADMIN", "MANAGER", "STAFF")
+                        .requestMatchers(HttpMethod.POST, "/api/payments/backfill-hotel-id").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/api/payments").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/payments/{paymentId}").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/payments/{paymentId}").hasRole("ADMIN")
                         .requestMatchers("/actuator/health/**").permitAll()
-                        .requestMatchers("/actuator/**").hasRole("MANAGER")
+                        .requestMatchers("/actuator/**").hasRole("ADMIN")
                         .requestMatchers(
                                 "/my-ui.html",
                                 "/swagger-ui/**",

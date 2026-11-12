@@ -23,6 +23,10 @@ public class ManagerInitializer implements CommandLineRunner {
     @Value("${manager.email}")
     private String email;
 
+    // hotel assigned to the first manager
+    @Value("${manager.hotel-id:2}")
+    private int hotelId;
+
     public ManagerInitializer(AuthRepository authRepository,
                               PasswordEncoder passwordEncoder) {
         this.authRepository = authRepository;
@@ -43,7 +47,7 @@ public class ManagerInitializer implements CommandLineRunner {
         manager.setPassword(passwordEncoder.encode(password));
         manager.setEnabled(true);
         manager.setRole(AuthRole.MANAGER);
-        manager.setHotelId(2); // input existing hotelId here
+        manager.setHotelId(hotelId);
 
         authRepository.save(manager);
     }

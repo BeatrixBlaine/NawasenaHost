@@ -40,7 +40,9 @@ public class AuthServiceImpl implements AuthService {
                     jwt.getClaimAsString("role"),
                     response.getAuthId(),
                     response.getHotelId(),
-                    response.getTokenType()
+                    response.getTokenType(),
+                    username,
+                    null
             );
         } catch (WebClientResponseException e) {
             throw ApiSupport.toApiException(e);

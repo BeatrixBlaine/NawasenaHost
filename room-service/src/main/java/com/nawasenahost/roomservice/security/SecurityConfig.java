@@ -78,16 +78,16 @@ public class SecurityConfig {
                 .httpBasic(configurer -> configurer.disable())
                 .authorizeHttpRequests(configurer -> configurer
 
-                        .requestMatchers(HttpMethod.GET, "/api/rooms/single-room/{roomId}").hasAnyAuthority("SCOPE_room.read", "ROLE_MANAGER", "ROLE_ADMIN")
-                        .requestMatchers(HttpMethod.GET, "/api/rooms/total-rooms/{hotelId}").hasAnyAuthority("SCOPE_room.read", "ROLE_MANAGER", "ROLE_ADMIN")
-                        .requestMatchers(HttpMethod.GET, "/api/rooms/{hotelId}").hasAnyAuthority("SCOPE_room.read", "ROLE_MANAGER", "ROLE_ADMIN")
-                        .requestMatchers(HttpMethod.POST, "/api/rooms").hasRole("MANAGER")
-                        .requestMatchers(HttpMethod.POST, "/api/rooms/batch").hasRole("MANAGER")
-                        .requestMatchers(HttpMethod.PUT, "/api/rooms/{roomId}").hasRole("MANAGER")
-                        .requestMatchers(HttpMethod.DELETE, "/api/rooms/{roomId}").hasRole("MANAGER")
-                        .requestMatchers(HttpMethod.GET, "/test/hotelcalls").hasRole("MANAGER")
+                        .requestMatchers(HttpMethod.GET, "/api/rooms/single-room/{roomId}").hasAnyAuthority("SCOPE_room.read", "ROLE_ADMIN", "ROLE_MANAGER", "ROLE_STAFF")
+                        .requestMatchers(HttpMethod.GET, "/api/rooms/total-rooms/{hotelId}").hasAnyAuthority("SCOPE_room.read", "ROLE_ADMIN", "ROLE_MANAGER", "ROLE_STAFF")
+                        .requestMatchers(HttpMethod.GET, "/api/rooms/{hotelId}").hasAnyAuthority("SCOPE_room.read", "ROLE_ADMIN", "ROLE_MANAGER", "ROLE_STAFF")
+                        .requestMatchers(HttpMethod.POST, "/api/rooms").hasAnyRole("ADMIN", "MANAGER")
+                        .requestMatchers(HttpMethod.POST, "/api/rooms/batch").hasAnyRole("ADMIN", "MANAGER")
+                        .requestMatchers(HttpMethod.PUT, "/api/rooms/{roomId}").hasAnyRole("ADMIN", "MANAGER")
+                        .requestMatchers(HttpMethod.DELETE, "/api/rooms/{roomId}").hasAnyRole("ADMIN", "MANAGER")
+                        .requestMatchers(HttpMethod.GET, "/test/hotelcalls").hasRole("ADMIN")
                         .requestMatchers("/actuator/health/**").permitAll()
-                        .requestMatchers("/actuator/**").hasRole("MANAGER")
+                        .requestMatchers("/actuator/**").hasRole("ADMIN")
                         .requestMatchers(
                                 "/my-ui.html",
                                 "/swagger-ui/**",

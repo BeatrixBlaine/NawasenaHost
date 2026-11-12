@@ -15,6 +15,12 @@ public class SessionServiceImpl implements SessionService {
         session.setAttribute(SESSION_KEY, sessionData);
     }
 
+    // same as get, but a missing session is not an error (the login page has none)
+    @Override
+    public SessionData find(HttpSession session) {
+        return (SessionData) session.getAttribute(SESSION_KEY);
+    }
+
     @Override
     public SessionData get(HttpSession session) {
 

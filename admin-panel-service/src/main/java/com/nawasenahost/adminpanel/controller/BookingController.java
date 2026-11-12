@@ -11,6 +11,8 @@ import com.nawasenahost.adminpanel.dto.SessionData;
 import com.nawasenahost.adminpanel.exception.ApiException;
 import com.nawasenahost.adminpanel.service.AvailabilityService;
 import com.nawasenahost.adminpanel.service.BookingService;
+import com.nawasenahost.adminpanel.service.CustomerService;
+import com.nawasenahost.adminpanel.service.RoomService;
 import com.nawasenahost.adminpanel.service.PaymentService;
 import com.nawasenahost.adminpanel.service.SessionService;
 import jakarta.servlet.http.HttpSession;
@@ -27,6 +29,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.time.LocalDate;
+import java.util.Comparator;
 import java.util.List;
 
 @Controller
@@ -36,19 +39,26 @@ public class BookingController {
     private final BookingService bookingService;
     private final PaymentService paymentService;
     private final AvailabilityService availabilityService;
+    private final CustomerService customerService;
+    private final RoomService roomService;
 
     public BookingController(SessionService sessionService,
                              BookingService bookingService,
                              PaymentService paymentService,
-                             AvailabilityService availabilityService) {
+                             AvailabilityService availabilityService,
+                             CustomerService customerService,
+                             RoomService roomService) {
         this.sessionService = sessionService;
         this.bookingService = bookingService;
         this.paymentService = paymentService;
         this.availabilityService = availabilityService;
+        this.customerService = customerService;
+        this.roomService = roomService;
     }
 
     @GetMapping("/bookings")
     public String bookings(@RequestParam(required = false) String status,
+                           @RequestParam(required = false) String q,
                            HttpSession session,
                            Model model) {
 
@@ -56,13 +66,28 @@ public class BookingController {
 
         model.addAttribute("activePage", "bookings");
         model.addAttribute("status", status);
+        model.addAttribute("q", q);
 
         try {
-            List<BookingSummary> bookings = bookingService.findAll(sessionData);
+            List<BookingSummary> bookings = bookingService.findAll(sessionData).stream()
+                    .sorted(Comparator.comparingInt(BookingSummary::bookingId).reversed())
+                    .toList();
 
             if (status != null && !status.isBlank()) {
                 bookings = bookings.stream()
                         .filter(booking -> status.equals(booking.status()))
+                        .toList();
+            }
+
+            // search on booking number, OTA reference or source
+            if (q != null && !q.isBlank()) {
+                String query = q.trim().toLowerCase();
+
+                bookings = bookings.stream()
+                        .filter(booking -> String.valueOf(booking.bookingId()).equals(query)
+                                || (booking.externalReference() != null
+                                && booking.externalReference().toLowerCase().contains(query))
+                                || (booking.source() != null && booking.source().toLowerCase().contains(query)))
                         .toList();
             }
 
@@ -86,7 +111,19 @@ public class BookingController {
         BookingSummary booking = bookingService.findById(sessionData, bookingId);
 
         model.addAttribute("booking", booking);
-        model.addAttribute("customer", bookingService.findCustomer(sessionData, booking.customerId()));
+
+        // customer name and room are a nice to have, the page still works without them
+        try {
+            model.addAttribute("customer", customerService.findById(sessionData, booking.customerId()));
+        } catch (ApiException e) {
+            model.addAttribute("customer", null);
+        }
+
+        try {
+            model.addAttribute("room", roomService.findById(sessionData, booking.roomId()));
+        } catch (ApiException e) {
+            model.addAttribute("room", null);
+        }
 
         try {
             model.addAttribute("payment", paymentService.findByBookingId(sessionData, bookingId));
@@ -145,6 +182,7 @@ public class BookingController {
         bookingData.setCheckInDate(form.getCheckInDate());
         bookingData.setCheckOutDate(form.getCheckOutDate());
         bookingData.setGuestCount(form.getGuestCount());
+        bookingData.setSource("DIRECT");
 
         BookingRequest bookingRequest = new BookingRequest();
         bookingRequest.setCustomerData(customerData);
@@ -183,16 +221,34 @@ public class BookingController {
         return "redirect:/bookings/" + bookingId;
     }
 
-    @PostMapping("/cancel-pending-booking")
-    public String cancelPendingBooking(@RequestParam int bookingId,
-                                       HttpSession session,
-                                       RedirectAttributes redirectAttributes) {
+    @PostMapping("/bookings/{bookingId}/cancel")
+    public String cancelBooking(@PathVariable int bookingId,
+                                @RequestParam(required = false) String reason,
+                                HttpSession session,
+                                RedirectAttributes redirectAttributes) {
 
         SessionData sessionData = sessionService.get(session);
 
         try {
-            bookingService.cancelPending(sessionData, bookingId);
-            redirectAttributes.addFlashAttribute("success", "Booking cancelled.");
+            BookingSummary cancelled = bookingService.cancel(sessionData, bookingId, reason);
+            redirectAttributes.addFlashAttribute("success", "Booking #" + cancelled.bookingId() + " cancelled.");
+        } catch (ApiException e) {
+            redirectAttributes.addFlashAttribute("error", e.getError().getMessage());
+        }
+
+        return "redirect:/bookings/" + bookingId;
+    }
+
+    @PostMapping("/bookings/{bookingId}/complete")
+    public String completeBooking(@PathVariable int bookingId,
+                                  HttpSession session,
+                                  RedirectAttributes redirectAttributes) {
+
+        SessionData sessionData = sessionService.get(session);
+
+        try {
+            bookingService.complete(sessionData, bookingId);
+            redirectAttributes.addFlashAttribute("success", "Guest checked out, booking completed.");
         } catch (ApiException e) {
             redirectAttributes.addFlashAttribute("error", e.getError().getMessage());
         }

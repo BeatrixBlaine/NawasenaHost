@@ -1,17 +1,13 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{fragments/layout :: head('Error')}"></head>
+<html th:replace="~{fragments/layout :: layout('Error', '', ~{::main})}" xmlns:th="http://www.thymeleaf.org">
 <body>
-<header th:replace="~{fragments/layout :: nav('')}"></header>
-
-<main class="mx-auto max-w-5xl px-6 py-10">
+<main class="mx-auto w-full max-w-3xl px-4 py-8 sm:px-8 sm:py-10">
     <div class="card p-8">
-        <p class="text-sm text-stone-500" th:text="${error.status}">500</p>
-        <h1 class="mt-1 text-xl font-semibold tracking-tight">Something went wrong</h1>
-        <p class="mt-2 text-sm text-stone-600" th:text="${error.message}"></p>
+        <p class="text-sm font-semibold text-teal-700" th:text="${error.status}">500</p>
+        <h1 class="page-title mt-1">Something went wrong</h1>
+        <p class="mt-2 text-sm text-slate-600" th:text="${error.message}"></p>
         <a th:href="@{/dashboard}" class="btn-ghost mt-6">Back to dashboard</a>
     </div>
 </main>
-
 </body>
 </html>

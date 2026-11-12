@@ -1,64 +1,76 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{fragments/layout :: head('Booking')}"></head>
+<html th:replace="~{fragments/layout :: layout('Booking', 'bookings', ~{::main})}" xmlns:th="http://www.thymeleaf.org">
 <body>
-<header th:replace="~{fragments/layout :: nav('bookings')}"></header>
+<main class="mx-auto w-full max-w-3xl px-4 py-6 sm:px-8 sm:py-10">
 
-<main class="mx-auto max-w-2xl px-6 py-10">
+    <a th:href="@{/bookings}" class="text-sm text-slate-500 hover:text-slate-900">← All bookings</a>
 
-    <a th:href="@{/bookings}" class="text-sm text-stone-500 hover:text-stone-900">← All bookings</a>
-
-    <div class="mb-8 mt-4 flex items-center justify-between">
-        <h1 class="text-xl font-semibold tracking-tight" th:text="'Booking #' + ${booking.bookingId}"></h1>
-        <span th:replace="~{fragments/layout :: status(${booking.status})}"></span>
+    <div class="mb-6 mt-4 flex items-center justify-between gap-3">
+        <h1 class="page-title" th:text="'Booking #' + ${booking.bookingId}"></h1>
+        <span th:replace="~{fragments/components :: status(${booking.status})}"></span>
     </div>
 
-    <div th:replace="~{fragments/layout :: alerts}"></div>
+    <div th:replace="~{fragments/components :: alerts}"></div>
 
-    <section class="card divide-y divide-stone-100">
-        <div class="flex justify-between px-5 py-3 text-sm">
-            <span class="text-stone-500">Guest</span>
-            <span th:if="${customer != null}" th:text="${customer.firstName} + ' ' + ${customer.lastName}"></span>
+    <section class="card divide-y divide-slate-100">
+        <div class="flex justify-between gap-4 px-5 py-3 text-sm">
+            <span class="text-slate-500">Guest</span>
+            <a th:if="${customer != null}" th:href="@{/customers/{id}(id=${customer.customerId})}" class="font-medium text-teal-700 hover:underline"
+               th:text="${customer.firstName} + ' ' + ${customer.lastName}"></a>
             <span th:if="${customer == null}" th:text="'Customer #' + ${booking.customerId}"></span>
         </div>
-        <div class="flex justify-between px-5 py-3 text-sm" th:if="${customer != null}">
-            <span class="text-stone-500">Contact</span>
-            <span th:text="${customer.email} + ' · ' + ${customer.phone}"></span>
+        <div class="flex justify-between gap-4 px-5 py-3 text-sm" th:if="${customer != null}">
+            <span class="text-slate-500">Contact</span>
+            <span class="text-right" th:text="${customer.email} + ' · ' + ${customer.phone}"></span>
         </div>
-        <div class="flex justify-between px-5 py-3 text-sm">
-            <span class="text-stone-500">Room</span>
-            <span th:text="${booking.roomId}"></span>
+        <div class="flex justify-between gap-4 px-5 py-3 text-sm">
+            <span class="text-slate-500">Room</span>
+            <span th:text="${room != null} ? ${room.roomNumber} + ' · ' + ${room.roomType} : '#' + ${booking.roomId}"></span>
         </div>
-        <div class="flex justify-between px-5 py-3 text-sm">
-            <span class="text-stone-500">Stay</span>
-            <span th:text="${booking.checkInDate} + ' → ' + ${booking.checkOutDate}"></span>
+        <div class="flex justify-between gap-4 px-5 py-3 text-sm">
+            <span class="text-slate-500">Stay</span>
+            <span th:text="${#temporals.format(booking.checkInDate, 'd MMM yyyy')} + ' → ' + ${#temporals.format(booking.checkOutDate, 'd MMM yyyy')}"></span>
         </div>
-        <div class="flex justify-between px-5 py-3 text-sm">
-            <span class="text-stone-500">Guests</span>
+        <div class="flex justify-between gap-4 px-5 py-3 text-sm">
+            <span class="text-slate-500">Guests</span>
             <span th:text="${booking.guestCount}"></span>
+        </div>
+        <div class="flex justify-between gap-4 px-5 py-3 text-sm">
+            <span class="text-slate-500">Source</span>
+            <span th:text="${booking.source} + (${booking.externalReference != null} ? ' · ' + ${booking.externalReference} : '')"></span>
+        </div>
+        <div class="flex justify-between gap-4 px-5 py-3 text-sm" th:if="${booking.createdAt != null}">
+            <span class="text-slate-500">Created</span>
+            <span th:text="${#temporals.format(booking.createdAt, 'd MMM yyyy HH:mm')}"></span>
+        </div>
+        <div class="flex justify-between gap-4 px-5 py-3 text-sm" th:if="${booking.cancelledAt != null}">
+            <span class="text-slate-500">Cancelled</span>
+            <span class="text-right" th:text="${#temporals.format(booking.cancelledAt, 'd MMM yyyy HH:mm')} + (${booking.cancelReason != null} ? ' · ' + ${booking.cancelReason} : '')"></span>
         </div>
     </section>
 
-    <h2 class="mb-3 mt-10 text-sm font-medium">Payment</h2>
+    <h2 class="mb-3 mt-8 text-sm font-semibold text-slate-900">Payment</h2>
 
-    <p th:if="${paymentError}" th:text="${paymentError}" class="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800"></p>
+    <p th:if="${paymentError}" th:text="${paymentError}" class="alert-error"></p>
 
     <section th:if="${payment != null}" class="card p-5">
         <div class="flex items-center justify-between">
             <div>
                 <p class="label">Amount</p>
-                <p class="text-lg font-semibold"
-                   th:text="${payment.currency != null ? payment.currency : 'IDR'} + ' ' + ${#numbers.formatDecimal(payment.amount, 1, 'COMMA', 0, 'POINT')}"></p>
+                <p class="font-display text-xl font-semibold"
+                   th:text="${payment.currency != null ? payment.currency : currency} + ' ' + ${#numbers.formatDecimal(payment.amount, 1, 'COMMA', 0, 'POINT')}"></p>
             </div>
-            <span th:replace="~{fragments/layout :: status(${payment.paymentStatus})}"></span>
+            <span th:replace="~{fragments/components :: status(${payment.paymentStatus})}"></span>
         </div>
 
-        <p th:if="${payment.paymentStatus == 'SUCCESS'}" class="mt-4 text-sm text-stone-500"
-           th:text="'Paid via ' + ${payment.paymentMethod} + ' (' + ${payment.paymentSource} + ')'"></p>
+        <p th:if="${payment.paymentStatus == 'SUCCESS' or payment.paymentStatus == 'REFUNDED'}" class="mt-4 text-sm text-slate-500"
+           th:text="'Paid via ' + ${payment.paymentMethod} + ' (' + ${payment.paymentSource} + ')' + (${payment.paidAt != null} ? ' on ' + ${#temporals.format(payment.paidAt, 'd MMM yyyy HH:mm')} : '')"></p>
+        <p th:if="${payment.paymentStatus == 'REFUNDED' and payment.refundedAt != null}" class="mt-1 text-sm text-violet-700"
+           th:text="'Refunded on ' + ${#temporals.format(payment.refundedAt, 'd MMM yyyy HH:mm')}"></p>
 
         <form th:if="${payment.paymentStatus == 'PENDING' and booking.status == 'PENDING'}"
               th:action="@{/bookings/{id}/confirm-payment(id=${booking.bookingId})}" method="post"
-              class="mt-6 grid gap-4 border-t border-stone-100 pt-5 sm:grid-cols-2">
+              class="mt-6 grid gap-4 border-t border-slate-100 pt-5 sm:grid-cols-2">
             <input type="hidden" name="paymentId" th:value="${payment.paymentid}">
             <div>
                 <label for="paymentMethod" class="label">Method</label>
@@ -87,11 +99,29 @@
         </form>
     </section>
 
-    <form th:if="${booking.status == 'PENDING'}" th:action="@{/cancel-pending-booking}" method="post" class="mt-6">
-        <input type="hidden" name="bookingId" th:value="${booking.bookingId}">
-        <button type="submit" class="btn-danger">Cancel booking</button>
+    <!-- check-out -->
+    <form th:if="${booking.status == 'CONFIRMED' and !booking.checkInDate.isAfter(today)}"
+          th:action="@{/bookings/{id}/complete(id=${booking.bookingId})}" method="post" class="mt-6">
+        <button type="submit" class="btn w-full sm:w-auto">Check out, complete booking</button>
     </form>
-</main>
 
+    <!-- cancel: a paid booking is refunded, only a MANAGER or ADMIN can do that -->
+    <section th:if="${booking.status == 'PENDING' or (booking.status == 'CONFIRMED' and booking.checkOutDate.isAfter(today) and me.role != 'STAFF')}"
+             class="card mt-8 p-5">
+        <h2 class="text-sm font-semibold text-slate-900">Cancel booking</h2>
+        <p class="mt-1 text-sm text-slate-500" th:if="${booking.status == 'CONFIRMED'}">
+            The room is released again and the payment is marked as refunded.</p>
+        <p class="mt-1 text-sm text-slate-500" th:if="${booking.status == 'PENDING'}">
+            The room is released again and the open payment is cancelled.</p>
+        <form th:action="@{/bookings/{id}/cancel(id=${booking.bookingId})}" method="post" class="mt-4 space-y-3"
+              onsubmit="return confirm('Cancel this booking?');">
+            <div>
+                <label for="reason" class="label">Reason (optional)</label>
+                <input id="reason" name="reason" type="text" maxlength="200" class="input" placeholder="For example: guest changed plans">
+            </div>
+            <button type="submit" class="btn-danger">Cancel booking</button>
+        </form>
+    </section>
+</main>
 </body>
 </html>

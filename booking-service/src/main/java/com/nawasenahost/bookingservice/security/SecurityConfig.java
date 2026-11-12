@@ -78,16 +78,20 @@ public class SecurityConfig {
                 .httpBasic(configurer -> configurer.disable())
                 .authorizeHttpRequests(configurer -> configurer
 
-                        .requestMatchers(HttpMethod.GET, "/api/bookings").hasAuthority("SCOPE_booking.read")
-                        .requestMatchers(HttpMethod.GET, "/api/bookings/hotel/{hotelId}").hasAnyRole("MANAGER", "ADMIN")
-                        .requestMatchers(HttpMethod.GET, "/api/bookings/{bookingId}").hasAnyAuthority("SCOPE_booking.read", "ROLE_MANAGER", "ROLE_ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/bookings").hasAnyAuthority("SCOPE_booking.read", "ROLE_ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/bookings/hotel/{hotelId}").hasAnyRole("ADMIN", "MANAGER", "STAFF")
+                        .requestMatchers(HttpMethod.GET, "/api/bookings/hotel/{hotelId}/report").hasAnyRole("ADMIN", "MANAGER")
+                        .requestMatchers(HttpMethod.GET, "/api/bookings/hotel/{hotelId}/customer/{customerId}").hasAnyRole("ADMIN", "MANAGER", "STAFF")
+                        .requestMatchers(HttpMethod.GET, "/api/bookings/{bookingId}").hasAnyAuthority("SCOPE_booking.read", "ROLE_ADMIN", "ROLE_MANAGER", "ROLE_STAFF")
                         .requestMatchers(HttpMethod.POST, "/api/bookings").hasAuthority("SCOPE_booking.create")
                         .requestMatchers(HttpMethod.PUT, "/api/bookings/{bookingId}/confirm-booking").hasAuthority("SCOPE_booking.create")
-                        .requestMatchers(HttpMethod.PUT, "/api/bookings/{bookingId}").hasRole("MANAGER")
-                        .requestMatchers(HttpMethod.DELETE, "/api/bookings/cancel-pending-booking").hasAnyRole("MANAGER", "ADMIN")
-                        .requestMatchers(HttpMethod.DELETE, "/api/bookings/{bookingId}").hasRole("MANAGER")
+                        .requestMatchers(HttpMethod.PUT, "/api/bookings/{bookingId}/cancel").hasAnyRole("ADMIN", "MANAGER", "STAFF")
+                        .requestMatchers(HttpMethod.PUT, "/api/bookings/{bookingId}/complete").hasAnyRole("ADMIN", "MANAGER", "STAFF")
+                        .requestMatchers(HttpMethod.DELETE, "/api/bookings/cancel-pending-booking").hasAnyRole("ADMIN", "MANAGER", "STAFF")
+                        .requestMatchers(HttpMethod.PUT, "/api/bookings/{bookingId}").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/bookings/{bookingId}").hasRole("ADMIN")
                         .requestMatchers("/actuator/health/**").permitAll()
-                        .requestMatchers("/actuator/**").hasRole("MANAGER")
+                        .requestMatchers("/actuator/**").hasRole("ADMIN")
                         .requestMatchers(
                                 "/my-ui.html",
                                 "/swagger-ui/**",

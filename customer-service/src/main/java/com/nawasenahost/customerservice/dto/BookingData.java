@@ -27,6 +27,10 @@ public class BookingData {
     @Min(value = 1, message = "Guest count must be at least 1")
     private int guestCount;
 
+    // DIRECT for the front desk, an OTA sends its own name and its own booking number
+    private String source;
+    private String externalReference;
+
     public Integer getCustomerId() {
         return customerId;
     }
@@ -73,5 +77,21 @@ public class BookingData {
 
     public void setGuestCount(int guestCount) {
         this.guestCount = guestCount;
+    }
+
+    public String getSource() {
+        return source;
+    }
+
+    public void setSource(String source) {
+        this.source = source;
+    }
+
+    public String getExternalReference() {
+        return externalReference;
+    }
+
+    public void setExternalReference(String externalReference) {
+        this.externalReference = externalReference;
     }
 }

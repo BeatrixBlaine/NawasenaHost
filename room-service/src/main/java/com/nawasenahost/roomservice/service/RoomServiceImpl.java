@@ -1,5 +1,6 @@
 package com.nawasenahost.roomservice.service;
 
+import com.nawasenahost.roomservice.audit.AuditPublisher;
 import com.nawasenahost.roomservice.client.AvailabilityClient;
 import com.nawasenahost.roomservice.client.HotelClient;
 import com.nawasenahost.roomservice.dto.RoomRequest;
@@ -28,18 +29,21 @@ public class RoomServiceImpl implements RoomService{
     private final HotelClient hotelClient;
     private final AvailabilityClient availabilityClient;
     private final TenantGuard tenantGuard;
+    private final AuditPublisher auditPublisher;
 
     @Autowired
     public RoomServiceImpl(RoomRepository roomRepository,
                            RestClient restClient,
                            HotelClient hotelClient,
                            AvailabilityClient availabilityClient,
-                           TenantGuard tenantGuard) {
+                           TenantGuard tenantGuard,
+                           AuditPublisher auditPublisher) {
         this.roomRepository = roomRepository;
         this.restClient = restClient;
         this.hotelClient = hotelClient;
         this.availabilityClient = availabilityClient;
         this.tenantGuard = tenantGuard;
+        this.auditPublisher = auditPublisher;
     }
 
     private void validateHotel(int hotelId) {
@@ -118,6 +122,9 @@ public class RoomServiceImpl implements RoomService{
         // if the sync fails, the saved room is rolled back too
         syncInventory(savedRoom.getHotelId());
 
+        auditPublisher.publish(savedRoom.getHotelId(), "ROOM_CREATED", "ROOM", savedRoom.getRoomId(),
+                "Room " + savedRoom.getRoomNumber() + " (" + savedRoom.getRoomType() + ") created");
+
         return savedRoom;
     }
 
@@ -129,6 +136,9 @@ public class RoomServiceImpl implements RoomService{
         roomRepository.deleteById(id);
 
         syncInventory(theRoom.getHotelId());
+
+        auditPublisher.publish(theRoom.getHotelId(), "ROOM_DELETED", "ROOM", id,
+                "Room " + theRoom.getRoomNumber() + " deleted");
     }
 
     @Override
@@ -158,6 +168,9 @@ public class RoomServiceImpl implements RoomService{
             syncInventory(oldHotelId);
             syncInventory(updatedRoom.getHotelId());
         }
+
+        auditPublisher.publish(updatedRoom.getHotelId(), "ROOM_UPDATED", "ROOM", updatedRoom.getRoomId(),
+                "Room " + updatedRoom.getRoomNumber() + " updated, price " + updatedRoom.getPrice());
 
         return updatedRoom;
     }

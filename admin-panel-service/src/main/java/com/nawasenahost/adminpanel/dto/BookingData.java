@@ -10,6 +10,8 @@ public class BookingData {
     private LocalDate checkInDate;
     private LocalDate checkOutDate;
     private int guestCount;
+    private String source;
+    private String externalReference;
 
     public Integer getCustomerId() {
         return customerId;
@@ -57,5 +59,21 @@ public class BookingData {
 
     public void setGuestCount(int guestCount) {
         this.guestCount = guestCount;
+    }
+
+    public String getSource() {
+        return source;
+    }
+
+    public void setSource(String source) {
+        this.source = source;
+    }
+
+    public String getExternalReference() {
+        return externalReference;
+    }
+
+    public void setExternalReference(String externalReference) {
+        this.externalReference = externalReference;
     }
 }

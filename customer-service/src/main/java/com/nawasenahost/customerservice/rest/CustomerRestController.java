@@ -27,6 +27,17 @@ public class CustomerRestController {
         return customerService.findAll();
     }
 
+    @GetMapping("/customers/hotel/{hotelId}")
+    public List<Customer> getCustomersByHotelId(@PathVariable int hotelId,
+                                                @RequestParam(required = false) String q) {
+        return customerService.findByHotelId(hotelId, q);
+    }
+
+    @PutMapping("/customers/assign-hotel")
+    public String assignHotel(@RequestParam int hotelId) {
+        return "Customers updated: " + customerService.assignHotel(hotelId);
+    }
+
     @GetMapping("/customers/{customerId}")
     public Customer getCustomer(@PathVariable int customerId) {
         return customerService.findById(customerId);

@@ -80,13 +80,13 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(configurer ->
                         configurer
-                                .requestMatchers(HttpMethod.GET, "/api/hotels").hasAuthority("SCOPE_hotel.read")
-                                .requestMatchers(HttpMethod.GET, "/api/hotels/{hotelId}").hasAnyAuthority("SCOPE_hotel.read", "ROLE_MANAGER", "ROLE_ADMIN")
-                                .requestMatchers(HttpMethod.POST, "/api/hotels").hasRole("MANAGER")
-                                .requestMatchers(HttpMethod.PUT, "/api/hotels/{hotelId}").hasRole("MANAGER")
-                                .requestMatchers(HttpMethod.DELETE, "/api/hotels/{hotelId}").hasRole("MANAGER")
+                                .requestMatchers(HttpMethod.GET, "/api/hotels").hasAnyAuthority("SCOPE_hotel.read", "ROLE_ADMIN")
+                                .requestMatchers(HttpMethod.GET, "/api/hotels/{hotelId}").hasAnyAuthority("SCOPE_hotel.read", "ROLE_ADMIN", "ROLE_MANAGER", "ROLE_STAFF")
+                                .requestMatchers(HttpMethod.POST, "/api/hotels").hasRole("ADMIN")
+                                .requestMatchers(HttpMethod.PUT, "/api/hotels/{hotelId}").hasAnyRole("ADMIN", "MANAGER")
+                                .requestMatchers(HttpMethod.DELETE, "/api/hotels/{hotelId}").hasRole("ADMIN")
                                 .requestMatchers("/actuator/health/**").permitAll()
-                                .requestMatchers("/actuator/**").hasRole("MANAGER")
+                                .requestMatchers("/actuator/**").hasRole("ADMIN")
                                 .requestMatchers(
                                         "/my-ui.html",
                                         "/swagger-ui/**",

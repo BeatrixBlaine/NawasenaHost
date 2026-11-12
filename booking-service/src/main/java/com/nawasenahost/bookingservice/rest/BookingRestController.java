@@ -1,5 +1,6 @@
 package com.nawasenahost.bookingservice.rest;
 
+import com.nawasenahost.bookingservice.dto.BookingReport;
 import com.nawasenahost.bookingservice.dto.BookingRequest;
 import com.nawasenahost.bookingservice.dto.BookingResponse;
 import com.nawasenahost.bookingservice.entity.Booking;
@@ -7,6 +8,7 @@ import com.nawasenahost.bookingservice.service.BookingService;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -27,6 +29,34 @@ public class BookingRestController {
     @GetMapping("/bookings/hotel/{hotelId}")
     public List<Booking> getBookingsByHotelId(@PathVariable int hotelId) {
         return bookingService.findByHotelId(hotelId);
+    }
+
+    @GetMapping("/bookings/hotel/{hotelId}/customer/{customerId}")
+    public List<Booking> getBookingsByCustomer(@PathVariable int hotelId,
+                                               @PathVariable int customerId) {
+        return bookingService.findByHotelIdAndCustomerId(hotelId, customerId);
+    }
+
+    @GetMapping("/bookings/hotel/{hotelId}/report")
+    public BookingReport getReport(@PathVariable int hotelId,
+                                   @RequestParam(required = false) LocalDate from,
+                                   @RequestParam(required = false) LocalDate to) {
+
+        LocalDate endDate = to != null ? to : LocalDate.now();
+        LocalDate startDate = from != null ? from : endDate.minusDays(29);
+
+        return bookingService.getReport(hotelId, startDate, endDate);
+    }
+
+    @PutMapping("/bookings/{bookingId}/cancel")
+    public Booking cancelBooking(@PathVariable int bookingId,
+                                 @RequestParam(required = false) String reason) {
+        return bookingService.cancelBooking(bookingId, reason);
+    }
+
+    @PutMapping("/bookings/{bookingId}/complete")
+    public Booking completeBooking(@PathVariable int bookingId) {
+        return bookingService.completeBooking(bookingId);
     }
 
     @GetMapping("/bookings/{bookingId}")

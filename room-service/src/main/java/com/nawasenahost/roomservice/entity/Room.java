@@ -29,6 +29,11 @@ public class Room {
     @Column(name = "description")
     private String description;
 
+    // optimistic locking, two people editing the same record cannot overwrite each other
+    @Version
+    @Column(nullable = false, columnDefinition = "int default 0")
+    private int version;
+
     public Room(){}
 
     public Room(int hotelId, String roomNumber, String roomType, double price, int capacity, String description) {
@@ -94,5 +99,13 @@ public class Room {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public int getVersion() {
+        return version;
+    }
+
+    public void setVersion(int version) {
+        this.version = version;
     }
 }

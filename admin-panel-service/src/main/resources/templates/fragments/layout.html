@@ -1,55 +1,103 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<!--
+    Page shell with the sidebar. A page uses it like this:
+    <html th:replace="~{fragments/layout :: layout('Title', 'activePage', ~{::main})}">
+    Small parts (icon, alerts, status badge) are in components.html
+-->
+<html th:fragment="layout(title, active, content)" lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/components :: head(${title})}"></head>
+<body class="min-h-screen bg-white">
 
-<head th:fragment="head(title)">
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title th:text="${title} + ' · NawasenaHost'">NawasenaHost</title>
-    <link rel="stylesheet" th:href="@{/css/output.css}">
-</head>
+<!-- shadow behind the sidebar on phones and tablets -->
+<div id="backdrop" class="fixed inset-0 z-30 hidden bg-slate-900/40 lg:hidden" onclick="toggleSidebar()"></div>
 
-<body>
+<div class="flex min-h-screen">
 
-<header th:fragment="nav(active)" class="border-b border-stone-200 bg-white">
-    <div class="mx-auto flex h-14 max-w-5xl items-center justify-between px-6">
+    <aside id="sidebar"
+           class="fixed inset-y-0 left-0 z-40 flex w-72 -translate-x-full flex-col overflow-y-auto border-r border-slate-200 bg-white px-4 pb-6 pt-5 transition-transform duration-200 lg:sticky lg:top-0 lg:h-screen lg:w-64 lg:translate-x-0">
 
-        <div class="flex items-center gap-8">
-            <a th:href="@{/dashboard}" class="text-sm font-semibold tracking-tight">NawasenaHost</a>
-
-            <nav class="flex items-center gap-1 text-sm">
-                <a th:href="@{/dashboard}"
-                   th:classappend="${active == 'dashboard'} ? 'text-stone-900 bg-stone-100' : 'text-stone-500 hover:text-stone-900'"
-                   class="rounded-md px-3 py-1.5">Dashboard</a>
-                <a th:href="@{/rooms}"
-                   th:classappend="${active == 'rooms'} ? 'text-stone-900 bg-stone-100' : 'text-stone-500 hover:text-stone-900'"
-                   class="rounded-md px-3 py-1.5">Rooms</a>
-                <a th:href="@{/availabilities}"
-                   th:classappend="${active == 'availabilities'} ? 'text-stone-900 bg-stone-100' : 'text-stone-500 hover:text-stone-900'"
-                   class="rounded-md px-3 py-1.5">New booking</a>
-                <a th:href="@{/bookings}"
-                   th:classappend="${active == 'bookings'} ? 'text-stone-900 bg-stone-100' : 'text-stone-500 hover:text-stone-900'"
-                   class="rounded-md px-3 py-1.5">Bookings</a>
-            </nav>
+        <div class="flex items-center justify-between px-3">
+            <a th:href="@{/dashboard}" class="wordmark">Nawasena<span>Host</span></a>
+            <button type="button" class="rounded-lg p-1.5 text-slate-500 hover:bg-slate-100 lg:hidden" onclick="toggleSidebar()" aria-label="Close menu">
+                <svg th:replace="~{fragments/components :: icon('close')}"></svg>
+            </button>
         </div>
 
-        <form th:action="@{/logout}" method="post">
-            <button type="submit" class="text-sm text-stone-500 hover:text-stone-900 cursor-pointer">Log out</button>
+        <!-- ADMIN: choose the hotel that is managed right now -->
+        <form th:if="${me != null and me.role == 'ADMIN' and !#lists.isEmpty(hotels)}"
+              th:action="@{/switch-hotel}" method="post" class="mt-6 px-3">
+            <label for="hotelSwitch" class="label">Hotel</label>
+            <select id="hotelSwitch" name="hotelId" class="input" onchange="this.form.submit()">
+                <option th:each="hotel : ${hotels}" th:value="${hotel.id}" th:text="${hotel.name}"
+                        th:selected="${hotel.id == me.hotelId}"></option>
+            </select>
         </form>
-    </div>
-</header>
 
-<div th:fragment="alerts" class="mb-6 space-y-3">
-    <p th:if="${success}" th:text="${success}"
-       class="rounded-md border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800"></p>
-    <p th:if="${error}" th:text="${error instanceof T(String) ? error : error.message}"
-       class="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800"></p>
+        <p th:if="${me != null and me.role != 'ADMIN'}" class="mt-6 truncate px-3 text-sm font-semibold text-slate-900"
+           th:text="${me.hotelName != null ? me.hotelName : 'Hotel #' + me.hotelId}"></p>
+
+        <nav class="mt-2 flex-1" th:if="${me != null}">
+
+            <p class="nav-title">Overview</p>
+            <a th:href="@{/dashboard}" class="nav-link" th:classappend="${active == 'dashboard'} ? 'nav-link-active'">
+                <svg th:replace="~{fragments/components :: icon('dashboard')}"></svg> Dashboard</a>
+
+            <p class="nav-title">Front desk</p>
+            <a th:href="@{/bookings}" class="nav-link" th:classappend="${active == 'bookings'} ? 'nav-link-active'">
+                <svg th:replace="~{fragments/components :: icon('bookings')}"></svg> Bookings</a>
+            <a th:href="@{/availabilities}" class="nav-link" th:classappend="${active == 'availabilities'} ? 'nav-link-active'">
+                <svg th:replace="~{fragments/components :: icon('plus')}"></svg> New booking</a>
+            <a th:href="@{/inventory}" class="nav-link" th:classappend="${active == 'inventory'} ? 'nav-link-active'">
+                <svg th:replace="~{fragments/components :: icon('inventory')}"></svg> Calendar</a>
+            <a th:href="@{/customers}" class="nav-link" th:classappend="${active == 'customers'} ? 'nav-link-active'">
+                <svg th:replace="~{fragments/components :: icon('customers')}"></svg> Customers</a>
+
+            <p class="nav-title">Property</p>
+            <a th:href="@{/rooms}" class="nav-link" th:classappend="${active == 'rooms'} ? 'nav-link-active'">
+                <svg th:replace="~{fragments/components :: icon('rooms')}"></svg> Rooms</a>
+            <a th:if="${me.role != 'STAFF'}" th:href="@{/payments}" class="nav-link" th:classappend="${active == 'payments'} ? 'nav-link-active'">
+                <svg th:replace="~{fragments/components :: icon('payments')}"></svg> Payments</a>
+
+            <th:block th:if="${me.role != 'STAFF'}">
+                <p class="nav-title">Administration</p>
+                <a th:if="${me.role == 'ADMIN'}" th:href="@{/hotels}" class="nav-link" th:classappend="${active == 'hotels'} ? 'nav-link-active'">
+                    <svg th:replace="~{fragments/components :: icon('hotels')}"></svg> Hotels</a>
+                <a th:href="@{/users}" class="nav-link" th:classappend="${active == 'users'} ? 'nav-link-active'">
+                    <svg th:replace="~{fragments/components :: icon('users')}"></svg> Users</a>
+                <a th:href="@{/audit-logs}" class="nav-link" th:classappend="${active == 'audit'} ? 'nav-link-active'">
+                    <svg th:replace="~{fragments/components :: icon('audit')}"></svg> Audit logs</a>
+            </th:block>
+        </nav>
+
+        <div class="mt-6 border-t border-slate-200 px-3 pt-4" th:if="${me != null}">
+            <p class="truncate text-sm font-semibold text-slate-900" th:text="${me.username}"></p>
+            <p class="text-xs text-slate-500" th:text="${me.role}"></p>
+            <form th:action="@{/logout}" method="post" class="mt-3">
+                <button type="submit" class="nav-link w-full cursor-pointer !px-0">
+                    <svg th:replace="~{fragments/components :: icon('logout')}"></svg> Log out</button>
+            </form>
+        </div>
+    </aside>
+
+    <div class="flex min-w-0 flex-1 flex-col">
+
+        <!-- top bar, only on phones and tablets -->
+        <header class="sticky top-0 z-20 flex items-center gap-3 border-b border-slate-200 bg-white/90 px-4 py-3 backdrop-blur lg:hidden">
+            <button type="button" class="rounded-lg p-1.5 text-slate-700 hover:bg-slate-100" onclick="toggleSidebar()" aria-label="Open menu">
+                <svg th:replace="~{fragments/components :: icon('menu')}"></svg>
+            </button>
+            <a th:href="@{/dashboard}" class="wordmark">Nawasena<span>Host</span></a>
+        </header>
+
+        <main th:replace="${content}"></main>
+    </div>
 </div>
 
-<span th:fragment="status(value)"
-      th:text="${value}"
-      th:classappend="${value == 'CONFIRMED' or value == 'SUCCESS'} ? 'bg-emerald-50 text-emerald-700' :
-                      (${value == 'PENDING'} ? 'bg-amber-50 text-amber-700' : 'bg-stone-100 text-stone-600')"
-      class="badge"></span>
-
+<script>
+    function toggleSidebar() {
+        document.getElementById('sidebar').classList.toggle('-translate-x-full');
+        document.getElementById('backdrop').classList.toggle('hidden');
+    }
+</script>
 </body>
 </html>

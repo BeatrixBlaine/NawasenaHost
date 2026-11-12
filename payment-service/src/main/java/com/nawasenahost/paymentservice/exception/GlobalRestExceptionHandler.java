@@ -1,6 +1,7 @@
 package com.nawasenahost.paymentservice.exception;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -39,6 +40,30 @@ public class GlobalRestExceptionHandler {
 
         PaymentErrorResponse error = new PaymentErrorResponse();
         error.setStatus(HttpStatus.CONFLICT.value());
+        error.setMessage(e.getMessage());
+        error.setTimeStamp(System.currentTimeMillis());
+
+        return error;
+    }
+
+    @ExceptionHandler(ObjectOptimisticLockingFailureException.class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public PaymentErrorResponse handleOptimisticLock(ObjectOptimisticLockingFailureException e) {
+
+        PaymentErrorResponse error = new PaymentErrorResponse();
+        error.setStatus(HttpStatus.CONFLICT.value());
+        error.setMessage("The payment was changed by someone else, please reload and try again");
+        error.setTimeStamp(System.currentTimeMillis());
+
+        return error;
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public PaymentErrorResponse handleIllegalArgument(IllegalArgumentException e) {
+
+        PaymentErrorResponse error = new PaymentErrorResponse();
+        error.setStatus(HttpStatus.BAD_REQUEST.value());
         error.setMessage(e.getMessage());
         error.setTimeStamp(System.currentTimeMillis());
 

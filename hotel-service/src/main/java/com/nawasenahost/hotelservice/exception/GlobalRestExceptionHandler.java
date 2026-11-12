@@ -1,6 +1,8 @@
 package com.nawasenahost.hotelservice.exception;
 
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -29,6 +31,15 @@ public class GlobalRestExceptionHandler {
                 e.getBindingResult().getFieldError().getDefaultMessage(),
                 System.currentTimeMillis()
         );
+    }
+
+    @ExceptionHandler({ObjectOptimisticLockingFailureException.class, DataIntegrityViolationException.class})
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public ErrorResponse handleConcurrentChange(Exception e) {
+        return new ErrorResponse(
+                HttpStatus.CONFLICT.value(),
+                "The record was changed by someone else or is still in use, please reload and try again",
+                System.currentTimeMillis());
     }
 
     @ExceptionHandler(AccessDeniedException.class)

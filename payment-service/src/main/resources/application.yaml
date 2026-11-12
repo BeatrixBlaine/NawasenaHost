@@ -13,6 +13,7 @@ spring:
               - room.read
               - booking.read
               - booking.create
+              - audit.write
 
         provider:
           auth-service:

@@ -1,6 +1,8 @@
 package com.nawasenahost.bookingservice.exception;
 
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -82,6 +84,24 @@ public class GlobalRestExceptionHandler {
                 e.getBindingResult().getFieldError().getDefaultMessage(),
                 System.currentTimeMillis()
         );
+    }
+
+    @ExceptionHandler(ObjectOptimisticLockingFailureException.class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public ErrorResponse handleOptimisticLock(ObjectOptimisticLockingFailureException e) {
+        return new ErrorResponse(
+                HttpStatus.CONFLICT.value(),
+                "The booking was changed by someone else, please reload and try again",
+                System.currentTimeMillis());
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public ErrorResponse handleDataIntegrity(DataIntegrityViolationException e) {
+        return new ErrorResponse(
+                HttpStatus.CONFLICT.value(),
+                "A booking with the same reference already exists",
+                System.currentTimeMillis());
     }
 
     @ExceptionHandler(AccessDeniedException.class)

@@ -1,27 +1,62 @@
+# NawasenaHost production compose
+#   cp .env.example .env   (fill it in, see docs/DEPLOYMENT.md)
+#   docker compose up -d --build
+#   docker compose up -d --scale ...   or set the *_REPLICAS values in .env
+# Only nginx publishes a port, everything else stays on the internal network.
+
 services:
-  eureka-server:
-    image: nawasenahost-eureka:1.0
-    container_name: nawasenahost-eureka
-    ports:
-      - "8761:8761"
+  mysql:
+    image: mysql:8.4
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      TZ: UTC
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci --max-connections=500
+    volumes:
+      - mysql-data:/var/lib/mysql
+      - ./deploy/mysql/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
     networks:
       - nawasenahost-network
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -p$$MYSQL_ROOT_PASSWORD --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 30s
+    restart: unless-stopped
+
+  eureka-server:
+    build: ./eureka-server
+    image: nawasenahost/eureka-server:${TAG:-latest}
+    networks:
+      - nawasenahost-network
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c '</dev/tcp/localhost/8761'"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 30s
     restart: unless-stopped
 
   auth-service:
-    image: nawasenahost-auth:2.0
-    container_name: nawasenahost-auth
-    ports:
-      - "8087:8087"
+    build: ./auth-service
+    image: nawasenahost/auth-service:${TAG:-latest}
     environment:
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
-      SPRING_DATASOURCE_URL: jdbc:mysql://host.docker.internal:3311/nawasenahost_auth
+      EUREKA_INSTANCE_PREFERIPADDRESS: "true"
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/nawasenahost_auth?createDatabaseIfNotExist=true&serverTimezone=UTC
       SPRING_DATASOURCE_USERNAME: root
-      SPRING_DATASOURCE_PASSWORD: ""
+      SPRING_DATASOURCE_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      SPRING_JPA_SHOW_SQL: "false"
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_RSA_PRIVATE_KEY: ${JWT_RSA_PRIVATE_KEY}
+      JWT_RSA_PUBLIC_KEY: ${JWT_RSA_PUBLIC_KEY}
       NAWASENAHOST_MANAGER_USERNAME: ${NAWASENAHOST_MANAGER_USERNAME}
       NAWASENAHOST_MANAGER_PASSWORD: ${NAWASENAHOST_MANAGER_PASSWORD}
       NAWASENAHOST_MANAGER_EMAIL: ${NAWASENAHOST_MANAGER_EMAIL}
-      JWT_SECRET: ${JWT_SECRET}
+      NAWASENAHOST_MANAGER_HOTEL_ID: ${NAWASENAHOST_MANAGER_HOTEL_ID:-1}
+      NAWASENAHOST_ADMIN_USERNAME: ${NAWASENAHOST_ADMIN_USERNAME}
+      NAWASENAHOST_ADMIN_PASSWORD: ${NAWASENAHOST_ADMIN_PASSWORD}
+      NAWASENAHOST_ADMIN_EMAIL: ${NAWASENAHOST_ADMIN_EMAIL}
       SERVICE_CLIENT_SECRET_BCRYPT: ${SERVICE_CLIENT_SECRET_BCRYPT}
       PAYMENT_CLIENT_SECRET_BCRYPT: ${PAYMENT_CLIENT_SECRET_BCRYPT}
       AVAILABILITY_CLIENT_SECRET_BCRYPT: ${AVAILABILITY_CLIENT_SECRET_BCRYPT}
@@ -30,115 +65,95 @@ services:
     networks:
       - nawasenahost-network
     depends_on:
-      - eureka-server
+      mysql:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c '</dev/tcp/localhost/8087'"]
+      interval: 15s
+      timeout: 5s
+      retries: 20
+      start_period: 60s
     restart: unless-stopped
+    deploy:
+      replicas: ${AUTH_SERVICE_REPLICAS:-1}
 
   hotel-service:
-    image: nawasenahost-hotel:1.0
-    container_name: nawasenahost-hotel
-    ports:
-      - "8081:8081"
+    build: ./hotel-service
+    image: nawasenahost/hotel-service:${TAG:-latest}
     environment:
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
-      SPRING_DATASOURCE_URL: jdbc:mysql://host.docker.internal:3307/nawasenahost_hotel
+      EUREKA_INSTANCE_PREFERIPADDRESS: "true"
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/nawasenahost_hotel?createDatabaseIfNotExist=true&serverTimezone=UTC
       SPRING_DATASOURCE_USERNAME: root
-      SPRING_DATASOURCE_PASSWORD: ""
+      SPRING_DATASOURCE_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      SPRING_JPA_SHOW_SQL: "false"
       AUTH_JWKS_URI: http://auth-service:8087/oauth2/jwks
       JWT_SECRET: ${JWT_SECRET}
-    networks:
-      - nawasenahost-network
-    depends_on:
-      - eureka-server
-      - auth-service
-    restart: unless-stopped
-
-  api-gateway:
-    image: nawasenahost-gateway:2.0
-    container_name: nawasenahost-gateway
-    ports:
-      - "8888:8888"
-    environment:
-      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
-      JWT_SECRET: ${JWT_SECRET}
-    networks:
-      - nawasenahost-network
-    depends_on:
-      - eureka-server
-    restart: unless-stopped
-
-  customer-service:
-    image: nawasenahost-customer:1.0
-    container_name: nawasenahost-customer
-    ports:
-      - "8085:8085"
-    environment:
-      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
-      SPRING_DATASOURCE_URL: jdbc:mysql://host.docker.internal:3313/nawasenahost_customer
-      SPRING_DATASOURCE_USERNAME: root
-      SPRING_DATASOURCE_PASSWORD: ""
-      AUTH_JWKS_URI: http://auth-service:8087/oauth2/jwks
       SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_AUTH_SERVICE_TOKEN_URI: http://auth-service:8087/oauth2/token
-      JWT_SECRET: ${JWT_SECRET}
-      CUSTOMER_CLIENT_SECRET: ${CUSTOMER_CLIENT_SECRET}
     networks:
       - nawasenahost-network
     depends_on:
-      - eureka-server
-      - auth-service
+      mysql:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
+      auth-service:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c '</dev/tcp/localhost/8081'"]
+      interval: 15s
+      timeout: 5s
+      retries: 20
+      start_period: 60s
     restart: unless-stopped
+    deploy:
+      replicas: ${HOTEL_SERVICE_REPLICAS:-1}
 
   room-service:
-    image: nawasenahost-room:1.0
-    container_name: nawasenahost-room
-    ports:
-      - "8082:8082"
+    build: ./room-service
+    image: nawasenahost/room-service:${TAG:-latest}
     environment:
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
-      SPRING_DATASOURCE_URL: jdbc:mysql://host.docker.internal:3308/nawasenahost_room
+      EUREKA_INSTANCE_PREFERIPADDRESS: "true"
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/nawasenahost_room?createDatabaseIfNotExist=true&serverTimezone=UTC
       SPRING_DATASOURCE_USERNAME: root
-      SPRING_DATASOURCE_PASSWORD: ""
-      AUTH_JWKS_URI: http://auth-service:8087/oauth2/jwks 
-      ROOM_CLIENT_SECRET: ${ROOM_CLIENT_SECRET}
-      JWT_SECRET: ${JWT_SECRET}
-      SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_AUTH_SERVICE_TOKEN_URI: http://auth-service:8087/oauth2/token
-    networks:
-      - nawasenahost-network
-    depends_on:
-      - eureka-server
-      - auth-service
-    restart: unless-stopped
-
-  booking-service:
-    image: nawasenahost-booking:1.0
-    container_name: nawasenahost-booking
-    ports:
-      - "8084:8084"
-    environment:
-      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
-      SPRING_DATASOURCE_URL: jdbc:mysql://host.docker.internal:3310/nawasenahost_booking
-      SPRING_DATASOURCE_USERNAME: root
-      SPRING_DATASOURCE_PASSWORD: ""
-      SERVICE_CLIENT_SECRET: ${SERVICE_CLIENT_SECRET}
-      JWT_SECRET: ${JWT_SECRET}
-      SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_AUTH_SERVICE_TOKEN_URI: http://auth-service:8087/oauth2/token
+      SPRING_DATASOURCE_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      SPRING_JPA_SHOW_SQL: "false"
       AUTH_JWKS_URI: http://auth-service:8087/oauth2/jwks
+      JWT_SECRET: ${JWT_SECRET}
+      SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_AUTH_SERVICE_TOKEN_URI: http://auth-service:8087/oauth2/token
+      ROOM_CLIENT_SECRET: ${ROOM_CLIENT_SECRET}
     networks:
       - nawasenahost-network
     depends_on:
-      - eureka-server
-      - auth-service
+      mysql:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
+      auth-service:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c '</dev/tcp/localhost/8082'"]
+      interval: 15s
+      timeout: 5s
+      retries: 20
+      start_period: 60s
     restart: unless-stopped
+    deploy:
+      replicas: ${ROOM_SERVICE_REPLICAS:-1}
 
   availability-service:
-    image: nawasenahost-availability:1.0
-    container_name: nawasenahost-availability
-    ports:
-      - "8083:8083"
+    build: ./availability-service
+    image: nawasenahost/availability-service:${TAG:-latest}
     environment:
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
-      SPRING_DATASOURCE_URL: jdbc:mysql://host.docker.internal:3309/nawasenahost_availability
+      EUREKA_INSTANCE_PREFERIPADDRESS: "true"
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/nawasenahost_availability?createDatabaseIfNotExist=true&serverTimezone=UTC
       SPRING_DATASOURCE_USERNAME: root
-      SPRING_DATASOURCE_PASSWORD: ""
+      SPRING_DATASOURCE_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      SPRING_JPA_SHOW_SQL: "false"
       AUTH_JWKS_URI: http://auth-service:8087/oauth2/jwks
       JWT_SECRET: ${JWT_SECRET}
       SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_AUTH_SERVICE_TOKEN_URI: http://auth-service:8087/oauth2/token
@@ -146,20 +161,98 @@ services:
     networks:
       - nawasenahost-network
     depends_on:
-      - eureka-server
-      - auth-service
+      mysql:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
+      auth-service:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c '</dev/tcp/localhost/8083'"]
+      interval: 15s
+      timeout: 5s
+      retries: 20
+      start_period: 60s
     restart: unless-stopped
+    deploy:
+      replicas: ${AVAILABILITY_SERVICE_REPLICAS:-1}
 
-  payment-service:
-    image: nawasenahost-payment:1.0
-    container_name: nawasenahost-payment
-    ports:
-      - "8086:8086"
+  booking-service:
+    build: ./booking-service
+    image: nawasenahost/booking-service:${TAG:-latest}
     environment:
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
-      SPRING_DATASOURCE_URL: jdbc:mysql://host.docker.internal:3312/nawasenahost_payment
+      EUREKA_INSTANCE_PREFERIPADDRESS: "true"
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/nawasenahost_booking?createDatabaseIfNotExist=true&serverTimezone=UTC
       SPRING_DATASOURCE_USERNAME: root
-      SPRING_DATASOURCE_PASSWORD: ""
+      SPRING_DATASOURCE_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      SPRING_JPA_SHOW_SQL: "false"
+      AUTH_JWKS_URI: http://auth-service:8087/oauth2/jwks
+      JWT_SECRET: ${JWT_SECRET}
+      SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_AUTH_SERVICE_TOKEN_URI: http://auth-service:8087/oauth2/token
+      SERVICE_CLIENT_SECRET: ${SERVICE_CLIENT_SECRET}
+    networks:
+      - nawasenahost-network
+    depends_on:
+      mysql:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
+      auth-service:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c '</dev/tcp/localhost/8084'"]
+      interval: 15s
+      timeout: 5s
+      retries: 20
+      start_period: 60s
+    restart: unless-stopped
+    deploy:
+      replicas: ${BOOKING_SERVICE_REPLICAS:-1}
+
+  customer-service:
+    build: ./customer-service
+    image: nawasenahost/customer-service:${TAG:-latest}
+    environment:
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
+      EUREKA_INSTANCE_PREFERIPADDRESS: "true"
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/nawasenahost_customer?createDatabaseIfNotExist=true&serverTimezone=UTC
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      SPRING_JPA_SHOW_SQL: "false"
+      AUTH_JWKS_URI: http://auth-service:8087/oauth2/jwks
+      JWT_SECRET: ${JWT_SECRET}
+      SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_AUTH_SERVICE_TOKEN_URI: http://auth-service:8087/oauth2/token
+      CUSTOMER_CLIENT_SECRET: ${CUSTOMER_CLIENT_SECRET}
+    networks:
+      - nawasenahost-network
+    depends_on:
+      mysql:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
+      auth-service:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c '</dev/tcp/localhost/8085'"]
+      interval: 15s
+      timeout: 5s
+      retries: 20
+      start_period: 60s
+    restart: unless-stopped
+    deploy:
+      replicas: ${CUSTOMER_SERVICE_REPLICAS:-1}
+
+  payment-service:
+    build: ./payment-service
+    image: nawasenahost/payment-service:${TAG:-latest}
+    environment:
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
+      EUREKA_INSTANCE_PREFERIPADDRESS: "true"
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/nawasenahost_payment?createDatabaseIfNotExist=true&serverTimezone=UTC
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      SPRING_JPA_SHOW_SQL: "false"
       AUTH_JWKS_URI: http://auth-service:8087/oauth2/jwks
       JWT_SECRET: ${JWT_SECRET}
       SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_AUTH_SERVICE_TOKEN_URI: http://auth-service:8087/oauth2/token
@@ -167,26 +260,84 @@ services:
     networks:
       - nawasenahost-network
     depends_on:
-      - eureka-server
-      - auth-service
+      mysql:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
+      auth-service:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c '</dev/tcp/localhost/8086'"]
+      interval: 15s
+      timeout: 5s
+      retries: 20
+      start_period: 60s
     restart: unless-stopped
+    deploy:
+      replicas: ${PAYMENT_SERVICE_REPLICAS:-1}
 
-  admin-panel-service:
-    image: nawasenahost-admin-panel:1.0
-    container_name: nawasenahost-admin-panel
-    ports:
-      - "8089:8089"
+  api-gateway:
+    build: ./api-gateway
+    image: nawasenahost/api-gateway:${TAG:-latest}
     environment:
-      SPRING_APPLICATION_NAME: admin-panel-service
-      SERVER_PORT: 8089
-      AUTH_SERVICE_URL: ${AUTH_SERVICE_URL}
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
+      EUREKA_INSTANCE_PREFERIPADDRESS: "true"
       JWT_SECRET: ${JWT_SECRET}
     networks:
       - nawasenahost-network
     depends_on:
-      - eureka-server
-      - auth-service
+      eureka-server:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c '</dev/tcp/localhost/8888'"]
+      interval: 15s
+      timeout: 5s
+      retries: 20
+      start_period: 60s
     restart: unless-stopped
+    deploy:
+      replicas: ${API_GATEWAY_REPLICAS:-1}
+
+  admin-panel-service:
+    build: ./admin-panel-service
+    image: nawasenahost/admin-panel-service:${TAG:-latest}
+    environment:
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
+      EUREKA_INSTANCE_PREFERIPADDRESS: "true"
+      AUTH_SERVICE_URL: http://nginx
+      JWT_SECRET: ${JWT_SECRET}
+    networks:
+      - nawasenahost-network
+    depends_on:
+      api-gateway:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c '</dev/tcp/localhost/8089'"]
+      interval: 15s
+      timeout: 5s
+      retries: 20
+      start_period: 60s
+    restart: unless-stopped
+    deploy:
+      replicas: ${ADMIN_PANEL_SERVICE_REPLICAS:-1}
+
+  nginx:
+    image: nginx:1.27-alpine
+    ports:
+      - "${HTTP_PORT:-80}:80"
+    volumes:
+      - ./deploy/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    networks:
+      - nawasenahost-network
+    depends_on:
+      api-gateway:
+        condition: service_healthy
+      admin-panel-service:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  mysql-data:
 
 networks:
   nawasenahost-network:

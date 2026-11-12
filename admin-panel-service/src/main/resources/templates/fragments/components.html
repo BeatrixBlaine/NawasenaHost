@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:fragment="head(title)">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="theme-color" content="#ffffff">
+    <title th:text="${title} + ' · NawasenaHost'">NawasenaHost</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Sora:wght@300;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/output.css}">
+</head>
+<body>
+
+<svg th:fragment="icon(name)" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+     stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5 shrink-0" th:switch="${name}">
+    <path th:case="'dashboard'" d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/>
+    <path th:case="'bookings'" d="M8 7V3m8 4V3M4 11h16M5 5h14a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z"/>
+    <path th:case="'plus'" d="M12 5v14M5 12h14"/>
+    <path th:case="'inventory'" d="M3 6h18M3 12h18M3 18h18M8 3v18M16 3v18"/>
+    <path th:case="'rooms'" d="M3 20V8l9-5 9 5v12M9 20v-6h6v6"/>
+    <path th:case="'customers'" d="M16 11a4 4 0 1 0-8 0 4 4 0 0 0 8 0zM4 21a8 8 0 0 1 16 0"/>
+    <path th:case="'payments'" d="M3 7h18v10H3V7zm0 3h18M7 14h3"/>
+    <path th:case="'hotels'" d="M4 21V5a1 1 0 0 1 1-1h9a1 1 0 0 1 1 1v16M15 10h4a1 1 0 0 1 1 1v10M8 8h3M8 12h3M8 16h3M3 21h18"/>
+    <path th:case="'users'" d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6l8-3zm-3 9l2 2 4-4"/>
+    <path th:case="'audit'" d="M9 5h6M9 9h6M9 13h4M6 3h12a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z"/>
+    <path th:case="'menu'" d="M4 7h16M4 12h16M4 17h16"/>
+    <path th:case="'logout'" d="M15 4h3a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1h-3M10 16l-4-4 4-4M6 12h10"/>
+    <path th:case="'close'" d="M6 6l12 12M18 6L6 18"/>
+</svg>
+
+<div th:fragment="alerts" class="mb-6 space-y-3">
+    <p th:if="${success}" th:text="${success}" class="alert-ok"></p>
+    <p th:if="${error}" th:text="${error instanceof T(String) ? error : error.message}" class="alert-error"></p>
+</div>
+
+<span th:fragment="status(value)"
+      th:text="${value}"
+      th:classappend="${value == 'CONFIRMED' or value == 'SUCCESS' or value == 'ACTIVE'} ? 'bg-emerald-50 text-emerald-700' :
+                      (${value == 'PENDING' or value == 'MAINTENANCE'} ? 'bg-amber-50 text-amber-700' :
+                      (${value == 'COMPLETED' or value == 'BOOKED'} ? 'bg-sky-50 text-sky-700' :
+                      (${value == 'CANCELLED' or value == 'FAILED' or value == 'BLOCKED' or value == 'DISABLED'} ? 'bg-rose-50 text-rose-700' :
+                      (${value == 'REFUNDED'} ? 'bg-violet-50 text-violet-700' : 'bg-slate-100 text-slate-600'))))"
+      class="badge"></span>
+
+</body>
+</html>

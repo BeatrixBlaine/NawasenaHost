@@ -27,8 +27,8 @@ public class AuthRestController {
     }
 
     @GetMapping("/auth/users")
-    public List<Auth> getUsers() {
-        return authService.findAll();
+    public List<Auth> getUsers(@RequestParam(required = false) Integer hotelId) {
+        return authService.findAll(hotelId);
     }
 
     @GetMapping("/auth/users/{userId}")

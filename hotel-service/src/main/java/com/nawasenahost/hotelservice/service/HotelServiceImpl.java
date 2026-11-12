@@ -1,6 +1,7 @@
 package com.nawasenahost.hotelservice.service;
 
 import com.nawasenahost.hotelservice.dto.HotelRequest;
+import com.nawasenahost.hotelservice.audit.AuditPublisher;
 import com.nawasenahost.hotelservice.entity.Hotel;
 import com.nawasenahost.hotelservice.exception.HotelNotFoundException;
 import com.nawasenahost.hotelservice.repository.HotelRepository;
@@ -15,11 +16,14 @@ public class HotelServiceImpl implements HotelService{
 
     private final HotelRepository hotelRepository;
     private final TenantGuard tenantGuard;
+    private final AuditPublisher auditPublisher;
 
     public HotelServiceImpl(HotelRepository hotelRepository,
-                            TenantGuard tenantGuard) {
+                            TenantGuard tenantGuard,
+                            AuditPublisher auditPublisher) {
         this.hotelRepository = hotelRepository;
         this.tenantGuard = tenantGuard;
+        this.auditPublisher = auditPublisher;
     }
 
     @Override
@@ -59,7 +63,12 @@ public class HotelServiceImpl implements HotelService{
         tempHotel.setPhone(hotelRequest.getPhone());
         tempHotel.setEmail(hotelRequest.getEmail());
 
-        return hotelRepository.save(tempHotel);
+        Hotel savedHotel = hotelRepository.save(tempHotel);
+
+        auditPublisher.publish(savedHotel.getId(), "HOTEL_CREATED", "HOTEL", savedHotel.getId(),
+                "Hotel " + savedHotel.getName() + " created");
+
+        return savedHotel;
     }
 
     @Override
@@ -76,12 +85,20 @@ public class HotelServiceImpl implements HotelService{
         tempHotel.setPhone(hotelRequest.getPhone());
         tempHotel.setEmail(hotelRequest.getEmail());
 
-        return hotelRepository.save(tempHotel);
+        Hotel savedHotel = hotelRepository.save(tempHotel);
+
+        auditPublisher.publish(savedHotel.getId(), "HOTEL_UPDATED", "HOTEL", savedHotel.getId(),
+                "Hotel " + savedHotel.getName() + " updated");
+
+        return savedHotel;
     }
 
     @Override
     public void deleteById(int id) {
-        findById(id);
+        Hotel theHotel = findById(id);
         hotelRepository.deleteById(id);
+
+        auditPublisher.publish(id, "HOTEL_DELETED", "HOTEL", id,
+                "Hotel " + theHotel.getName() + " deleted");
     }
 }

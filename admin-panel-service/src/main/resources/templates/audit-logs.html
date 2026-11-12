@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html th:replace="~{fragments/layout :: layout('Audit logs', 'audit', ~{::main})}" xmlns:th="http://www.thymeleaf.org">
+<body>
+<main class="mx-auto w-full max-w-6xl px-4 py-6 sm:px-8 sm:py-10">
+
+    <h1 class="page-title">Audit logs</h1>
+    <p class="mb-6 mt-1 text-sm text-slate-500">Who changed what, newest first.</p>
+
+    <div th:replace="~{fragments/components :: alerts}"></div>
+
+    <form th:action="@{/audit-logs}" method="get" class="mb-4 grid gap-3 sm:grid-cols-[10rem_1fr_1fr_auto]">
+        <select name="scope" class="input" th:if="${me.role == 'ADMIN'}">
+            <option value="current" th:selected="${scope == 'current'}">This hotel</option>
+            <option value="all" th:selected="${scope == 'all'}">All hotels</option>
+        </select>
+        <select name="entityType" class="input">
+            <option value="">All records</option>
+            <option th:each="t : ${T(java.util.List).of('BOOKING', 'PAYMENT', 'ROOM', 'HOTEL', 'USER', 'CUSTOMER')}"
+                    th:value="${t}" th:text="${t}" th:selected="${t == entityType}"></option>
+        </select>
+        <input type="search" name="actor" th:value="${actor}" placeholder="Username" class="input">
+        <button type="submit" class="btn-ghost">Filter</button>
+    </form>
+
+    <div class="card overflow-x-auto" th:if="${logs != null}">
+        <table class="min-w-full divide-y divide-slate-100">
+            <thead>
+            <tr>
+                <th class="th">Time</th>
+                <th class="th">Who</th>
+                <th class="th">Action</th>
+                <th class="th hidden md:table-cell">Details</th>
+            </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100">
+            <tr th:each="log : ${logs.content}" class="align-top hover:bg-slate-50">
+                <td class="td whitespace-nowrap text-slate-500" th:text="${#temporals.format(log.createdAt, 'd MMM HH:mm')}"></td>
+                <td class="td"><span class="font-semibold text-slate-900" th:text="${log.actor}"></span>
+                    <span class="block text-xs text-slate-400" th:text="${log.actorRole}"></span></td>
+                <td class="td"><span class="badge bg-slate-100 text-slate-700" th:text="${log.action}"></span>
+                    <span class="block text-xs text-slate-400" th:text="${log.entityType} + ' ' + ${log.entityId}"></span>
+                    <span class="mt-1 block text-xs text-slate-500 md:hidden" th:text="${log.details}"></span></td>
+                <td class="td hidden text-slate-600 md:table-cell" th:text="${log.details}"></td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(logs.content)}">
+                <td colspan="4" class="td py-10 text-center text-slate-500">No records.</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="mt-4 flex items-center justify-between text-sm text-slate-500" th:if="${logs != null and logs.totalPages > 1}">
+        <a th:if="${logs.page > 0}" th:href="@{/audit-logs(page=${logs.page - 1}, scope=${scope}, entityType=${entityType}, actor=${actor})}" class="btn-ghost">← Newer</a>
+        <span th:unless="${logs.page > 0}"></span>
+        <span th:text="'Page ' + ${logs.page + 1} + ' of ' + ${logs.totalPages}"></span>
+        <a th:if="${logs.page + 1 < logs.totalPages}" th:href="@{/audit-logs(page=${logs.page + 1}, scope=${scope}, entityType=${entityType}, actor=${actor})}" class="btn-ghost">Older →</a>
+        <span th:unless="${logs.page + 1 < logs.totalPages}"></span>
+    </div>
+</main>
+</body>
+</html>
