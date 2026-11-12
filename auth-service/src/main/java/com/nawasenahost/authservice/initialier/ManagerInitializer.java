@@ -37,7 +37,15 @@ public class ManagerInitializer implements CommandLineRunner {
     @Override
     public void run(String... args) throws Exception {
 
-        if(authRepository.findByUsername(username).isPresent()) {
+        if (username.isBlank() || password.isBlank() || email.isBlank()) {
+            return;
+        }
+
+        String managerEmail = email.isBlank()
+                ? username + "@nawasenahost.local"
+                : email;
+
+        if(authRepository.findByUsername(username).isPresent() || authRepository.existsByEmail(managerEmail)) {
             return;
         }
 

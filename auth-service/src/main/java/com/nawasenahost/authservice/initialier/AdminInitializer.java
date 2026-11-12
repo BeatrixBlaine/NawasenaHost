@@ -33,11 +33,11 @@ public class AdminInitializer implements CommandLineRunner {
     @Override
     public void run(String... args) throws Exception {
 
-        if (username.isBlank() || password.isBlank()) {
+        if (username.isBlank() || password.isBlank() || email.isBlank()) {
             return;
         }
 
-        if (authRepository.findByUsername(username).isPresent()) {
+        if (authRepository.findByUsername(username).isPresent() || authRepository.existsByEmail(email)) {
             return;
         }
 

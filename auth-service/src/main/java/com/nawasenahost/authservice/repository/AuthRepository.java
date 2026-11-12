@@ -11,5 +11,6 @@ public interface AuthRepository extends JpaRepository<Auth, Integer> {
     Optional<Auth> findByUsername(String username);
     List<Auth> findAllByHotelId(int hotelId);
     boolean existsByRole(com.nawasenahost.authservice.entity.AuthRole role);
+    boolean existsByEmail(String email);
 
 }

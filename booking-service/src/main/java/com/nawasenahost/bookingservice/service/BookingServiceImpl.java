@@ -165,8 +165,8 @@ public class BookingServiceImpl implements BookingService{
         tempBooking.setCheckOutDate(bookingRequest.getCheckOutDate());
         tempBooking.setGuestCount(bookingRequest.getGuestCount());
         tempBooking.setStatus(BookingStatus.PENDING);
-        tempBooking.setSource(source);
-        tempBooking.setExternalReference(externalReference);
+        // tempBooking.setSource(source);
+        // tempBooking.setExternalReference(externalReference);
         tempBooking.setCreatedAt(LocalDateTime.now());
 
         Booking savedBooking = bookingRepository.save(tempBooking);
