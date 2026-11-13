@@ -7,13 +7,6 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Component;
 
-/**
- * Multi-tenant guard.
- * - ADMIN (role claim) can access every hotel.
- * - MANAGER and STAFF (role claim) can only access the hotel in their hotelId claim.
- * - Service tokens (RS256, client credentials, no "role" claim) are trusted and bypass the check,
- *   because the user-facing service that received the original request already checked the tenant.
- */
 @Component
 public class TenantGuard {
 

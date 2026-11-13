@@ -16,6 +16,10 @@
     </div>
 
     <div th:replace="~{fragments/components :: alerts}"></div>
+    <div th:if="${inventoryError}"
+         class="mb-4 rounded-lg border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700"
+         th:text="${error}">
+    </div>
 
     <div class="mb-3 flex flex-wrap gap-4 text-xs text-slate-600">
         <span class="inline-flex items-center gap-1.5"><i class="h-3 w-3 rounded bg-sky-500"></i> Booked</span>
@@ -39,7 +43,7 @@
             <tr th:each="room : ${rooms}" class="border-t border-slate-100">
                 <td class="sticky left-0 z-10 whitespace-nowrap bg-white px-3 py-2 text-left text-sm font-semibold text-slate-900" th:text="${room.roomNumber}"></td>
                 <td th:each="d : ${dates}" class="p-0.5">
-                    <th:block th:with="state=${cells != null ? cells.get(room.roomId + '|' + d) : null}">
+                    <th:block th:with="state=${cells != null ? cells.get(room.roomId + '|' + #temporals.format(d, 'yyyy-MM-dd')) : null}">
                         <div th:if="${state == null}" class="h-7 rounded border border-slate-200 bg-white"></div>
                         <div th:if="${state == 'BOOKED'}" class="h-7 rounded bg-sky-500" title="Booked"></div>
                         <div th:if="${state == 'MAINTENANCE'}" class="h-7 rounded bg-amber-400" title="Maintenance"></div>

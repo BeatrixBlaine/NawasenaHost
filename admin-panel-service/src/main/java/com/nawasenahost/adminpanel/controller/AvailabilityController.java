@@ -104,9 +104,11 @@ public class AvailabilityController {
                 cells.put(block.roomId() + "|" + block.date(), block.status());
             }
 
+            System.out.println("AVAILABILITY CELLS: " + cells);
+
             model.addAttribute("cells", cells);
         } catch (ApiException e) {
-            model.addAttribute("error", e.getError().getMessage());
+            model.addAttribute("inventoryError", e.getError().getMessage());
         }
 
         try {
