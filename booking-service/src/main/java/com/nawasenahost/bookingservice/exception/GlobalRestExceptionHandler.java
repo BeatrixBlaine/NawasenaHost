@@ -113,4 +113,13 @@ public class GlobalRestExceptionHandler {
                 System.currentTimeMillis());
     }
 
+    @ExceptionHandler(BookingCannotBeUpdatedException.class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public ErrorResponse handleBookingCannotBeUpdated(BookingCannotBeUpdatedException e) {
+        return new ErrorResponse(
+                HttpStatus.CONFLICT.value(),
+                e.getMessage(),
+                System.currentTimeMillis());
+    }
+
 }

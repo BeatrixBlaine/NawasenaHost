@@ -1,13 +1,6 @@
 package com.nawasenahost.adminpanel.controller;
 
-import com.nawasenahost.adminpanel.dto.BookingData;
-import com.nawasenahost.adminpanel.dto.BookingForm;
-import com.nawasenahost.adminpanel.dto.BookingRequest;
-import com.nawasenahost.adminpanel.dto.BookingResponse;
-import com.nawasenahost.adminpanel.dto.BookingSummary;
-import com.nawasenahost.adminpanel.dto.CustomerData;
-import com.nawasenahost.adminpanel.dto.RoomResponse;
-import com.nawasenahost.adminpanel.dto.SessionData;
+import com.nawasenahost.adminpanel.dto.*;
 import com.nawasenahost.adminpanel.exception.ApiException;
 import com.nawasenahost.adminpanel.service.AvailabilityService;
 import com.nawasenahost.adminpanel.service.BookingService;
@@ -31,6 +24,8 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import java.time.LocalDate;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Controller
 public class BookingController {
@@ -91,7 +86,17 @@ public class BookingController {
                         .toList();
             }
 
+            List<CustomerResponse> customers = customerService.findAll(sessionData, null);
+
+            Map<Integer, String> customerNames = customers.stream()
+                            .collect(Collectors.toMap(
+                                    CustomerResponse::customerId,
+                                    customer -> customer.firstName() + " " + customer.lastName(),
+                                    (existing, replacement) -> existing
+                            ));
+
             model.addAttribute("bookings", bookings);
+            model.addAttribute("customerNames", customerNames);
         } catch (ApiException e) {
             model.addAttribute("error", e.getError().getMessage());
         }

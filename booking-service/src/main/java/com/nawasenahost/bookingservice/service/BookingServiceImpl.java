@@ -193,6 +193,8 @@ public class BookingServiceImpl implements BookingService{
     @Override
     public Booking update(int id, BookingRequest bookingRequest) {
 
+        Booking tempBooking = findById(id);
+
         tenantGuard.assertHotel(bookingRequest.getHotelId());
 
         validateCustomer(bookingRequest.getCustomerId());
@@ -200,14 +202,18 @@ public class BookingServiceImpl implements BookingService{
         validateHotel(bookingRequest.getHotelId());
         validateRoom(bookingRequest.getRoomId(), bookingRequest.getHotelId());
 
-        Booking tempBooking = findById(id);
+        if (tempBooking.getStatus() != BookingStatus.PENDING) {
+            throw new BookingCannotBeUpdatedException(
+                    "Only pending bookings can be updated"
+            );
+        }
+
         tempBooking.setCustomerId(bookingRequest.getCustomerId());
         tempBooking.setHotelId(bookingRequest.getHotelId());
         tempBooking.setRoomId(bookingRequest.getRoomId());
         tempBooking.setCheckInDate(bookingRequest.getCheckInDate());
         tempBooking.setCheckOutDate(bookingRequest.getCheckOutDate());
         tempBooking.setGuestCount(bookingRequest.getGuestCount());
-        tempBooking.setCustomerId(bookingRequest.getCustomerId());
 
         return bookingRepository.save(tempBooking);
     }

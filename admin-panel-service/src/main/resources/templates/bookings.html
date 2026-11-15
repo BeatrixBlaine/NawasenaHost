@@ -26,6 +26,7 @@
             <tr>
                 <th class="th">No.</th>
                 <th class="th">Stay</th>
+                <th class="th">Customer</th>
                 <th class="th hidden md:table-cell">Room</th>
                 <th class="th hidden md:table-cell">Guests</th>
                 <th class="th hidden sm:table-cell">Source</th>
@@ -35,6 +36,10 @@
             <tbody class="divide-y divide-slate-100">
             <tr th:each="b : ${bookings}" class="hover:bg-slate-50">
                 <td class="td"><a th:href="@{/bookings/{id}(id=${b.bookingId})}" class="font-semibold text-teal-700 hover:underline" th:text="'#' + ${b.bookingId}"></a></td>
+                <td class="td font-medium"
+                    th:text="${customerNames[b.customerId] ?: 'Unknown'}">
+                    Customer
+                </td>
                 <td class="td whitespace-nowrap" th:text="${#temporals.format(b.checkInDate, 'd MMM')} + ' → ' + ${#temporals.format(b.checkOutDate, 'd MMM yyyy')}"></td>
                 <td class="td hidden md:table-cell" th:text="${b.roomId}"></td>
                 <td class="td hidden md:table-cell" th:text="${b.guestCount}"></td>
