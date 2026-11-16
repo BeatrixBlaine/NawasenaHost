@@ -95,8 +95,17 @@ public class BookingController {
                                     (existing, replacement) -> existing
                             ));
 
+            List<RoomResponse> rooms = roomService.findAll(sessionData);
+
+            Map<Integer, String> roomNumbers = rooms.stream()
+                            .collect(Collectors.toMap(
+                               RoomResponse::roomId,
+                               RoomResponse::roomNumber
+                            ));
+
             model.addAttribute("bookings", bookings);
             model.addAttribute("customerNames", customerNames);
+            model.addAttribute("roomNumbers", roomNumbers);
         } catch (ApiException e) {
             model.addAttribute("error", e.getError().getMessage());
         }

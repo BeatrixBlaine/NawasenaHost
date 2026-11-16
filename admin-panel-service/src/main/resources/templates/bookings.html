@@ -25,8 +25,8 @@
             <thead>
             <tr>
                 <th class="th">No.</th>
-                <th class="th">Stay</th>
                 <th class="th">Customer</th>
+                <th class="th">Stay</th>
                 <th class="th hidden md:table-cell">Room</th>
                 <th class="th hidden md:table-cell">Guests</th>
                 <th class="th hidden sm:table-cell">Source</th>
@@ -41,7 +41,7 @@
                     Customer
                 </td>
                 <td class="td whitespace-nowrap" th:text="${#temporals.format(b.checkInDate, 'd MMM')} + ' → ' + ${#temporals.format(b.checkOutDate, 'd MMM yyyy')}"></td>
-                <td class="td hidden md:table-cell" th:text="${b.roomId}"></td>
+                <td class="td hidden md:table-cell" th:text="${roomNumbers[b.roomId]}"></td>
                 <td class="td hidden md:table-cell" th:text="${b.guestCount}"></td>
                 <td class="td hidden sm:table-cell">
                     <span th:text="${b.source}"></span>

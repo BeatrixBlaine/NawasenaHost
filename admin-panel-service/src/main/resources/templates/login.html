@@ -15,11 +15,11 @@
     <form th:action="@{/login}" method="post" class="card space-y-4 p-6">
         <div>
             <label for="username" class="label">Username</label>
-            <input id="username" name="username" type="text" required autofocus autocomplete="username" class="input">
+            <input id="username" name="username" type="text" required autofocus autocomplete="off" class="input">
         </div>
         <div>
             <label for="password" class="label">Password</label>
-            <input id="password" name="password" type="password" required autocomplete="current-password" class="input">
+            <input id="password" name="password" type="password" required autocomplete="new-password" class="input">
         </div>
         <button type="submit" class="btn w-full">Sign in</button>
     </form>
