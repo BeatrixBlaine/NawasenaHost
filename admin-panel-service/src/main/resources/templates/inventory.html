@@ -107,6 +107,10 @@
                 </select>
             </div>
             <button type="submit" class="btn">Close room</button>
+            <p th:if="${closeRoomError}"
+               th:text="${closeRoomError}"
+               class="text-sm text-rose-600 font-medium">
+            </p>
         </form>
 
         <form th:action="@{/inventory/unblock}" method="post" class="card space-y-4 p-5">
