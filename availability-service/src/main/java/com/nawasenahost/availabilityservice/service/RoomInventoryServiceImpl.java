@@ -3,8 +3,12 @@ package com.nawasenahost.availabilityservice.service;
 import com.nawasenahost.availabilityservice.client.RoomClient;
 import com.nawasenahost.availabilityservice.dto.OccupancyDay;
 import com.nawasenahost.availabilityservice.dto.OccupancyReport;
+import com.nawasenahost.availabilityservice.dto.RoomResponse;
 import com.nawasenahost.availabilityservice.security.TenantGuard;
+import com.nawasenahost.availabilityservice.entity.Availability;
+import com.nawasenahost.availabilityservice.entity.AvailabilityStatus;
 import com.nawasenahost.availabilityservice.entity.RoomInventory;
+import com.nawasenahost.availabilityservice.repository.AvailabilityRepository;
 import com.nawasenahost.availabilityservice.repository.RoomInventoryRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,14 +24,17 @@ import java.util.Map;
 public class RoomInventoryServiceImpl implements RoomInventoryService{
 
     private final RoomInventoryRepository roomInventoryRepository;
+    private final AvailabilityRepository availabilityRepository;
     private final RoomClient roomClient;
 
     private final TenantGuard tenantGuard;
 
     public RoomInventoryServiceImpl(RoomInventoryRepository roomInventoryRepository,
+                                    AvailabilityRepository availabilityRepository,
                                     RoomClient roomClient,
                                     TenantGuard tenantGuard) {
         this.roomInventoryRepository = roomInventoryRepository;
+        this.availabilityRepository = availabilityRepository;
         this.roomClient = roomClient;
         this.tenantGuard = tenantGuard;
     }
@@ -87,6 +94,24 @@ public class RoomInventoryServiceImpl implements RoomInventoryService{
 
         List<RoomInventory> inventories = findByHotelId(hotelId, startDate, endDate);
 
+        // rooms that are in maintenance or blocked per night, they are not free even though nobody booked them
+        Map<LocalDate, Integer> blockedPerDay = new HashMap<>();
+
+        List<Integer> roomIds = roomClient.getRooms(hotelId).stream()
+                .map(RoomResponse::getRoomId)
+                .toList();
+
+        if (!roomIds.isEmpty()) {
+            for (Availability block : availabilityRepository
+                    .findByRoomIdInAndStatusInAndDateGreaterThanEqualAndDateLessThanOrderByDateAsc(
+                            roomIds,
+                            List.of(AvailabilityStatus.MAINTENANCE, AvailabilityStatus.BLOCKED),
+                            startDate,
+                            endDate.plusDays(1))) {
+                blockedPerDay.merge(block.getDate(), 1, Integer::sum);
+            }
+        }
+
         List<OccupancyDay> days = new ArrayList<>();
         double rateSum = 0;
         double todayRate = 0;
@@ -102,7 +127,8 @@ public class RoomInventoryServiceImpl implements RoomInventoryService{
                     inventory.getDate(),
                     inventory.getTotal(),
                     inventory.getReserved(),
-                    inventory.getAvailable(),
+                    Math.max(inventory.getTotal() - inventory.getReserved()
+                            - blockedPerDay.getOrDefault(inventory.getDate(), 0), 0),
                     rate));
 
             rateSum += rate;
