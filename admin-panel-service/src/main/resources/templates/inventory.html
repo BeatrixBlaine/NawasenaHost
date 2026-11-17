@@ -18,7 +18,7 @@
     <div th:replace="~{fragments/components :: alerts}"></div>
     <div th:if="${inventoryError}"
          class="mb-4 rounded-lg border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700"
-         th:text="${error}">
+         th:text="${inventoryError}">
     </div>
 
     <div class="mb-3 flex flex-wrap gap-4 text-xs text-slate-600">
@@ -71,6 +71,10 @@
                 <tr class="border-t border-slate-100">
                     <td class="px-3 py-2 text-left font-medium text-slate-600">Booked / total</td>
                     <td th:each="day : ${occupancy.days}" class="px-1 py-2" th:text="${day.reserved} + '/' + ${day.total}"></td>
+                </tr>
+                <tr class="border-t border-slate-100">
+                    <td class="px-3 py-2 text-left font-medium text-slate-600">Available</td>
+                    <td th:each="day : ${occupancy.days}" class="px-1 py-2" th:text="${day.available}"></td>
                 </tr>
                 <tr class="border-t border-slate-100">
                     <td class="px-3 py-2 text-left font-medium text-slate-600">Rate</td>
@@ -127,6 +131,10 @@
                 <div><label for="openEnd" class="label">Until (not included)</label><input id="openEnd" name="endDate" type="date" required class="input"></div>
             </div>
             <button type="submit" class="btn-ghost">Open room</button>
+            <p th:if="${openRoomError}"
+               th:text="${openRoomError}"
+               class="text-sm text-rose-600 font-medium">
+            </p>
         </form>
     </section>
 </main>

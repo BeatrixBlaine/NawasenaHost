@@ -31,7 +31,9 @@
 
 <div th:fragment="alerts" class="mb-6 space-y-3">
     <p th:if="${success}" th:text="${success}" class="alert-ok"></p>
-    <p th:if="${error}" th:text="${error instanceof T(String) ? error : error.message}" class="alert-error"></p>
+    <p th:if="${error}"
+       th:text="${error}"
+       class="alert-error"></p>
 </div>
 
 <span th:fragment="status(value)"

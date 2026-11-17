@@ -153,7 +153,7 @@ public class AvailabilityController {
             availabilityService.unblock(sessionData, roomId, startDate, endDate);
             redirectAttributes.addFlashAttribute("success", "Room opened again from " + startDate + " until " + endDate + ".");
         } catch (ApiException e) {
-            redirectAttributes.addFlashAttribute("error", e.getError().getMessage());
+            redirectAttributes.addFlashAttribute("openRoomError", e.getError().getMessage());
         }
 
         return "redirect:/inventory?from=" + startDate;

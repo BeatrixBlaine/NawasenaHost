@@ -236,6 +236,10 @@ public class AvailabilityServiceImpl implements AvailabilityService{
     @Transactional
     public int unblockRoom(int roomId, LocalDate startDate, LocalDate endDate) {
 
+        if (!endDate.isAfter(startDate)) {
+            throw new IllegalArgumentException("End date must be after date");
+        }
+
         RoomResponse room = validateRoom(roomId);
         tenantGuard.assertHotel(room.getHotelId());
 
